@@ -971,31 +971,51 @@
   } else { initRemember(); }
   window.addEventListener('load', initRemember);
 
+  // ====== GLOBAL ERROR CATCHER ======
+  window.onerror = function(msg, src, line) {
+    var text = 'JS Error: ' + msg + ' (line ' + line + ')';
+    var ids = ['slMsg','alMsg','srMsg','sdMsg','fpMsg','cpMsg'];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      if (el) { var pg = el.closest ? el.closest('.page') : null;
+        if (pg && pg.classList.contains('active')) { showMsg(ids[i], text, 'error'); break; } }
+    }
+    return false;
+  };
+
   // ====== STUDENT LOGIN / REGISTER ======
   function studentLogin() {
-    var email = document.getElementById('slEmail').value.trim();
-    var pass = document.getElementById('slPass').value;
-    var rem = document.getElementById('slRemember').checked;
-    if (!email || !pass) { showMsg('slMsg', 'Please fill all fields', 'error'); return; }
-    if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('slMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
-    showMsg('slMsg', 'Logging in...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          if (rem) { lsSet('s_email', email); lsSet('s_pass', pass); lsSet('s_rem', '1'); }
-          else { lsRemove('s_email'); lsRemove('s_pass'); lsRemove('s_rem'); }
-          currentUser = r.user;
-          document.getElementById('sdWelcome').textContent = r.user.name;
-          clearMsg('slMsg');
-          showPage('studentDashboard');
-          setTimeout(checkUnreadReplies, 800);
-        } else {
-          if (r.code === 'NO_ACCOUNT') { clearMsg('slMsg'); openModal('m-noAccount'); }
-          else showMsg('slMsg', r.message, 'error');
-        }
-      })
-      .withFailureHandler(function(e) { showMsg('slMsg', 'Error: ' + e.message, 'error'); })
-      .loginStudent(email, pass);
+    try {
+      var email = document.getElementById('slEmail').value.trim();
+      var pass = document.getElementById('slPass').value;
+      var remEl = document.getElementById('slRemember');
+      var rem = remEl ? remEl.checked : false;
+      if (!email || !pass) { showMsg('slMsg', 'Please fill all fields', 'error'); return; }
+      if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('slMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
+      showMsg('slMsg', 'Logging in...', 'success');
+      if (typeof google === 'undefined' || !google.script) {
+        showMsg('slMsg', 'Error: Not running inside Google Apps Script. Open the deployed URL.', 'error'); return;
+      }
+      google.script.run
+        .withSuccessHandler(function(r) {
+          try {
+            if (r.success) {
+              if (rem) { lsSet('s_email', email); lsSet('s_pass', pass); lsSet('s_rem', '1'); }
+              else { lsRemove('s_email'); lsRemove('s_pass'); lsRemove('s_rem'); }
+              currentUser = r.user;
+              document.getElementById('sdWelcome').textContent = r.user.name;
+              clearMsg('slMsg');
+              showPage('studentDashboard');
+              setTimeout(checkUnreadReplies, 800);
+            } else {
+              if (r.code === 'NO_ACCOUNT') { clearMsg('slMsg'); openModal('m-noAccount'); }
+              else showMsg('slMsg', r.message, 'error');
+            }
+          } catch(e2) { showMsg('slMsg', 'Handler error: ' + e2.message, 'error'); }
+        })
+        .withFailureHandler(function(e) { showMsg('slMsg', 'Server error: ' + e.message, 'error'); })
+        .loginStudent(email, pass);
+    } catch(e) { showMsg('slMsg', 'Login error: ' + e.message, 'error'); }
   }
 
   function studentRegister() {
@@ -1019,23 +1039,31 @@
 
   // ====== ADMIN LOGIN ======
   function adminLogin() {
-    var email = document.getElementById('alEmail').value.trim();
-    var pass = document.getElementById('alPass').value;
-    var rem = document.getElementById('alRemember').checked;
-    if (!email || !pass) { showMsg('alMsg', 'Please fill all fields', 'error'); return; }
-    showMsg('alMsg', 'Logging in...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          if (rem) { lsSet('a_email', email); lsSet('a_pass', pass); lsSet('a_rem', '1'); }
-          else { lsRemove('a_email'); lsRemove('a_pass'); lsRemove('a_rem'); }
-          currentUser = r.user;
-          clearMsg('alMsg');
-          showPage('adminDashboard');
-        } else showMsg('alMsg', r.message, 'error');
-      })
-      .withFailureHandler(function(e) { showMsg('alMsg', 'Error: ' + e.message, 'error'); })
-      .loginAdmin(email, pass);
+    try {
+      var email = document.getElementById('alEmail').value.trim();
+      var pass = document.getElementById('alPass').value;
+      var remEl = document.getElementById('alRemember');
+      var rem = remEl ? remEl.checked : false;
+      if (!email || !pass) { showMsg('alMsg', 'Please fill all fields', 'error'); return; }
+      showMsg('alMsg', 'Logging in...', 'success');
+      if (typeof google === 'undefined' || !google.script) {
+        showMsg('alMsg', 'Error: Not running inside Google Apps Script. Open the deployed URL.', 'error'); return;
+      }
+      google.script.run
+        .withSuccessHandler(function(r) {
+          try {
+            if (r.success) {
+              if (rem) { lsSet('a_email', email); lsSet('a_pass', pass); lsSet('a_rem', '1'); }
+              else { lsRemove('a_email'); lsRemove('a_pass'); lsRemove('a_rem'); }
+              currentUser = r.user;
+              clearMsg('alMsg');
+              showPage('adminDashboard');
+            } else showMsg('alMsg', r.message, 'error');
+          } catch(e2) { showMsg('alMsg', 'Handler error: ' + e2.message, 'error'); }
+        })
+        .withFailureHandler(function(e) { showMsg('alMsg', 'Server error: ' + e.message, 'error'); })
+        .loginAdmin(email, pass);
+    } catch(e) { showMsg('alMsg', 'Login error: ' + e.message, 'error'); }
   }
 
   // ====== TABS ======
