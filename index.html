@@ -928,9 +928,25 @@
   }
 
   // ====== REMEMBER ME ======
-  function lsGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
-  function lsRemove(k) { try { localStorage.removeItem(k); } catch(e) {} }
+  // Safe storage: tries localStorage first, falls back to in-memory object
+  // (localStorage is blocked in GAS sandboxed iframes on mobile Safari/Chrome)
+  var _memStore = {};
+  var _lsAvailable = (function() {
+    try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }
+    catch(e) { return false; }
+  })();
+  function lsGet(k) {
+    if (_lsAvailable) { try { return localStorage.getItem(k); } catch(e) {} }
+    return _memStore[k] !== undefined ? _memStore[k] : null;
+  }
+  function lsSet(k, v) {
+    if (_lsAvailable) { try { localStorage.setItem(k, v); return; } catch(e) {} }
+    _memStore[k] = v;
+  }
+  function lsRemove(k) {
+    if (_lsAvailable) { try { localStorage.removeItem(k); return; } catch(e) {} }
+    delete _memStore[k];
+  }
 
   function applyRememberStudent() {
     if (lsGet('s_rem') === '1') {
