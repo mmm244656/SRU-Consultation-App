@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#667eea">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+  <title>Student Consultation App</title>
   <style>
-    /* ── RESET & BASE ── */
     *, *::before, *::after {
       margin: 0; padding: 0;
       box-sizing: border-box;
@@ -16,12 +16,12 @@
     }
     html {
       overflow-x: hidden;
-      -webkit-text-size-adjust: 100%; /* prevent iOS font boosting */
+      -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
     }
     body {
       min-height: 100vh;
-      min-height: 100dvh; /* dynamic viewport height (handles mobile browser bars) */
+      min-height: 100dvh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
@@ -34,47 +34,36 @@
       color: #1e293b;
       overflow-x: hidden;
     }
-
-    /* ── INPUT FONT SIZE: prevent iOS zoom on focus ── */
     input, textarea, select, button {
       font-size: 16px !important;
       touch-action: manipulation;
     }
     button { cursor: pointer; }
 
-    /* ── PAGES ── */
     .page { display: none; width: 100%; }
     .page.active { display: block; }
 
-    /* ── AUTH CARD ── */
+    /* ── AUTH ── */
     .auth-wrap {
       background: white;
       padding: clamp(20px, 5vw, 38px) clamp(16px, 5vw, 32px);
       border-radius: 18px;
       box-shadow: 0 12px 40px rgba(0,0,0,0.18);
-      width: 100%;
-      max-width: 440px;
-      text-align: center;
-      margin: 0 auto;
+      width: 100%; max-width: 440px;
+      text-align: center; margin: 0 auto;
     }
     .auth-icon { font-size: clamp(38px, 8vw, 52px); margin-bottom: 6px; }
     .auth-title { font-size: clamp(18px, 5vw, 26px); font-weight: 700; color: #1e293b; margin-bottom: 4px; }
     .auth-sub { font-size: clamp(12px, 3vw, 14px); color: #64748b; margin-bottom: 22px; }
 
-    /* ── FORM FIELDS ── */
     .field {
-      width: 100%;
-      padding: 13px 14px;
-      margin: 6px 0;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      background: #fff;
-      line-height: 1.4;
+      width: 100%; padding: 13px 14px; margin: 6px 0;
+      border: 2px solid #e2e8f0; border-radius: 10px;
+      background: #fff; line-height: 1.4;
     }
     .field:focus { outline: none; border-color: #667eea; }
     .hint { font-size: 12px; color: #94a3b8; text-align: left; margin: -2px 0 6px 4px; }
 
-    /* ── CUSTOM SELECT ── */
     select.field {
       -webkit-appearance: none !important;
       -moz-appearance: none !important;
@@ -95,14 +84,10 @@
     .remember-row { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 14px; color: #475569; }
     .remember-row input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; }
 
-    /* ── BUTTONS ── */
     .btn-main {
-      width: 100%; padding: 14px;
-      border: none; border-radius: 10px;
-      font-size: clamp(14px, 3.5vw, 15px);
-      font-weight: 700; color: white;
-      margin: 7px 0;
-      transition: transform 0.1s, opacity 0.15s;
+      width: 100%; padding: 14px; border: none; border-radius: 10px;
+      font-size: clamp(14px, 3.5vw, 15px); font-weight: 700; color: white;
+      margin: 7px 0; transition: transform 0.1s, opacity 0.15s;
     }
     .btn-main:active { transform: scale(0.98); opacity: 0.9; }
 
@@ -115,7 +100,6 @@
 
     .link-btn { background: none; border: none; color: #667eea; font-size: 14px; margin-top: 12px; display: block; width: 100%; padding: 8px; }
     .forgot-btn { background: none; border: none; color: #94a3b8; font-size: 13px; margin-top: 2px; display: block; width: 100%; text-align: right; padding: 4px; }
-    .forgot-btn:active { color: #667eea; }
     .back-btn { background: none; border: none; color: #94a3b8; font-size: 13px; margin-top: 6px; display: block; width: 100%; padding: 8px; }
 
     .msg-box { margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 14px; display: none; word-wrap: break-word; }
@@ -126,283 +110,122 @@
 
     /* ── STUDENT DASHBOARD ── */
     .sd-wrap {
-      background: white;
-      border-radius: 16px;
+      background: white; border-radius: 16px;
       padding: clamp(14px, 4vw, 28px);
-      width: 100%;
-      max-width: 620px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
-      margin: 0 auto;
+      width: 100%; max-width: 620px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18); margin: 0 auto;
     }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .topbar h2 {
-      font-size: clamp(14px, 4vw, 20px);
-      color: #1e293b;
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
-    }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 8px; flex-wrap: wrap; }
+    .topbar h2 { font-size: clamp(14px, 4vw, 20px); color: #1e293b; flex: 1; min-width: 0; word-break: break-word; }
     .topbar-btns { display: flex; gap: 6px; flex-shrink: 0; }
-    .sm-btn {
-      padding: 8px 12px;
-      border: none; border-radius: 8px;
-      font-size: clamp(11px, 2.5vw, 13px);
-      font-weight: 600; color: white;
-      white-space: nowrap;
-    }
+    .sm-btn { padding: 8px 12px; border: none; border-radius: 8px; font-size: clamp(11px, 2.5vw, 13px); font-weight: 600; color: white; white-space: nowrap; }
     .sm-btn:active { opacity: 0.85; }
 
-    /* ── TABS ── */
-    .tabs {
-      display: flex;
-      background: #f1f5f9;
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 16px;
-      gap: 2px;
-      overflow: hidden;
-    }
+    .tabs { display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; margin-bottom: 16px; gap: 2px; overflow: hidden; }
     .tab-wrap { position: relative; flex: 1; min-width: 0; }
     .tab-wrap .tab-btn { width: 100%; }
     .tab-btn {
       flex: 1; min-width: 0;
       padding: clamp(8px, 2vw, 10px) 4px;
-      border: none; background: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: clamp(11px, 3vw, 14px);
-      color: #64748b;
-      width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      border: none; background: none; border-radius: 8px;
+      font-weight: 600; font-size: clamp(11px, 3vw, 14px);
+      color: #64748b; width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .tab-btn.active {
-      background: white;
-      color: #1e3a8a;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      border: 1.5px solid #1e3a8a;
-    }
+    .tab-btn.active { background: white; color: #1e3a8a; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border: 1.5px solid #1e3a8a; }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
 
-    /* ── FORM CARD ── */
     .form-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: clamp(12px, 3vw, 16px); }
     .form-card h3 { font-size: clamp(14px, 3.5vw, 16px); color: #1e3a8a; margin-bottom: 12px; }
     textarea.field { min-height: 110px; resize: vertical; }
 
-    /* ── REQUEST CARDS ── */
-    .req-card {
-      background: #f8fafc; border: 1px solid #e2e8f0;
-      border-radius: 10px; padding: 14px; margin-bottom: 10px;
-      word-wrap: break-word; overflow-wrap: break-word;
-    }
+    .req-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 10px; word-wrap: break-word; overflow-wrap: break-word; }
     .req-meta { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
     .req-cat { font-weight: 700; color: #1e3a8a; font-size: 14px; }
     .req-detail { color: #374151; font-size: 14px; margin: 6px 0; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
 
-    /* ── BADGES ── */
     .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
     .badge-pending { background: #fef3c7; color: #92400e; }
     .badge-completed { background: #d1fae5; color: #065f46; }
     .badge-rejected { background: #fee2e2; color: #991b1b; }
 
-    .view-reply-btn {
-      margin-top: 10px; padding: 9px 14px;
-      background: #2563eb; color: white;
-      border: none; border-radius: 8px;
-      font-size: 13px; font-weight: 700;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
+    .view-reply-btn { margin-top: 10px; padding: 9px 14px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
     .view-reply-btn:active { background: #1d4ed8; }
 
-    .new-reply-tag {
-      display: inline-block; background: #ef4444; color: white;
-      padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800;
-      margin-left: 6px; vertical-align: middle;
-      animation: pulse 1.5s infinite;
-    }
+    .new-reply-tag { display: inline-block; background: #ef4444; color: white; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; margin-left: 6px; vertical-align: middle; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
     .empty-state { text-align: center; color: #94a3b8; padding: 36px 0; font-size: 14px; }
 
-    /* ── NOTIFICATION BADGE ── */
     .notif-dot {
-      position: absolute;
-      top: 4px; right: 4px;
-      background: #ef4444;
-      color: white;
-      border-radius: 999px;
-      font-size: 10px; font-weight: 800;
+      position: absolute; top: 4px; right: 4px;
+      background: #ef4444; color: white;
+      border-radius: 999px; font-size: 10px; font-weight: 800;
       min-width: 18px; height: 18px;
-      display: none;
-      align-items: center; justify-content: center;
-      padding: 0 5px;
-      pointer-events: none;
-      z-index: 10;
-      border: 2px solid white;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      display: none; align-items: center; justify-content: center;
+      padding: 0 5px; pointer-events: none; z-index: 10;
+      border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
       animation: popIn 0.3s ease;
     }
     .notif-dot.show { display: flex; }
-    @keyframes popIn {
-      0% { transform: scale(0); }
-      70% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
+    @keyframes popIn { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
     /* ── SETTINGS ── */
-    .acct-info-box {
-      background: #eff6ff; border: 1px solid #bfdbfe;
-      border-radius: 10px; padding: 12px; margin-bottom: 16px; word-break: break-word;
-    }
+    .acct-info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; margin-bottom: 16px; word-break: break-word; }
     .acct-info-box .label { font-weight: 700; color: #1e3a8a; font-size: 13px; margin-bottom: 6px; }
     .acct-info-box .name { color: #374151; font-size: 14px; }
     .acct-info-box .email { color: #64748b; font-size: 12px; word-break: break-all; }
     .section-title { font-weight: 700; color: #1e3a8a; font-size: 15px; margin: 14px 0 4px; }
     .section-sub { font-size: 12px; color: #64748b; margin-bottom: 10px; }
 
-    /* ── ADMIN DASHBOARD ── */
-    .admin-page-wrap {
-      background: #f1f5f9;
-      min-height: 100vh;
-      min-height: 100dvh;
-      width: 100%;
-      padding: 0;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      margin: -12px;
-      margin-left: max(-12px, calc(-1 * env(safe-area-inset-left)));
-      margin-right: max(-12px, calc(-1 * env(safe-area-inset-right)));
-    }
-    .admin-inner {
-      width: 100%;
-      max-width: 1200px;
-      padding: clamp(14px, 3vw, 30px) clamp(12px, 3vw, 24px);
-    }
+    /* ── ADMIN ── */
+    .admin-page-wrap { background: #f1f5f9; min-height: 100vh; min-height: 100dvh; width: 100%; padding: 0; display: flex; align-items: flex-start; justify-content: center; margin: -12px; }
+    .admin-inner { width: 100%; max-width: 1200px; padding: clamp(14px, 3vw, 30px) clamp(12px, 3vw, 24px); }
 
-    .admin-topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-      flex-wrap: wrap; gap: 10px;
-    }
+    .admin-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
     .admin-title { font-size: clamp(16px, 4vw, 24px); font-weight: 700; color: #1e293b; }
     .admin-topbar-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 
-    /* ── STATS GRID ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-    .stat-card {
-      background: white; border-radius: 12px;
-      padding: clamp(10px, 2.5vw, 14px) clamp(10px, 2.5vw, 12px);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid;
-    }
+    .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+    .stat-card { background: white; border-radius: 12px; padding: clamp(10px, 2.5vw, 14px) clamp(10px, 2.5vw, 12px); box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid; }
     .stat-label { font-size: clamp(9px, 2vw, 11px); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
     .stat-val { font-size: clamp(24px, 6vw, 40px); font-weight: 800; }
     .sc-total { border-color: #bfdbfe; background: #eff6ff; }
-    .sc-total .stat-label { color: #1d4ed8; }
-    .sc-total .stat-val { color: #2563eb; }
+    .sc-total .stat-label { color: #1d4ed8; } .sc-total .stat-val { color: #2563eb; }
     .sc-pending { border-color: #fde68a; background: #fffbeb; }
-    .sc-pending .stat-label { color: #b45309; }
-    .sc-pending .stat-val { color: #d97706; }
+    .sc-pending .stat-label { color: #b45309; } .sc-pending .stat-val { color: #d97706; }
     .sc-completed { border-color: #a7f3d0; background: #f0fdf4; }
-    .sc-completed .stat-label { color: #047857; }
-    .sc-completed .stat-val { color: #059669; }
+    .sc-completed .stat-label { color: #047857; } .sc-completed .stat-val { color: #059669; }
     .sc-rejected { border-color: #fecaca; background: #fef2f2; }
-    .sc-rejected .stat-label { color: #b91c1c; }
-    .sc-rejected .stat-val { color: #dc2626; }
+    .sc-rejected .stat-label { color: #b91c1c; } .sc-rejected .stat-val { color: #dc2626; }
 
-    /* ── FILTER BAR ── */
-    .filter-row {
-      display: flex; gap: 6px;
-      margin-bottom: 12px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
+    .filter-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .filter-row::-webkit-scrollbar { display: none; }
-    .filter-btn {
-      padding: 8px 16px;
-      border: 1.5px solid #e2e8f0;
-      background: white; border-radius: 8px;
-      font-size: 13px; font-weight: 600; color: #64748b;
-      white-space: nowrap; flex-shrink: 0;
-    }
+    .filter-btn { padding: 8px 16px; border: 1.5px solid #e2e8f0; background: white; border-radius: 8px; font-size: 13px; font-weight: 600; color: #64748b; white-space: nowrap; flex-shrink: 0; }
     .filter-btn.active { background: #1e3a8a; color: white; border-color: #1e3a8a; }
 
-    /* ── ADMIN TABLE (desktop) ── */
-    .tbl-card {
-      background: white; border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      border: 1px solid #e2e8f0;
-    }
-    .tbl-head {
-      display: grid;
-      grid-template-columns: 1.5fr 1.2fr 1.8fr 1.4fr 1fr 1fr;
-      padding: 12px 18px;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 11px; font-weight: 800;
-      letter-spacing: 1px; color: #64748b;
-      text-transform: uppercase;
-    }
-    .tbl-row {
-      display: grid;
-      grid-template-columns: 1.5fr 1.2fr 1.8fr 1.4fr 1fr 1fr;
-      padding: 14px 18px;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 13px; color: #374151;
-      align-items: center;
-    }
+    .tbl-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+    .tbl-head { display: grid; grid-template-columns: 1.5fr 1.2fr 1.8fr 1.4fr 1fr 1fr; padding: 12px 18px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #64748b; text-transform: uppercase; }
+    .tbl-row { display: grid; grid-template-columns: 1.5fr 1.2fr 1.8fr 1.4fr 1fr 1fr; padding: 14px 18px; border-bottom: 1px solid #f1f5f9; font-size: 13px; color: #374151; align-items: center; }
     .tbl-row:last-child { border-bottom: none; }
     .clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tbl-empty { padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 14px; }
-    .view-btn {
-      padding: 8px 14px; border: none; border-radius: 6px;
-      background: #2563eb; color: white;
-      font-size: 12px; font-weight: 700;
-    }
+    .view-btn { padding: 8px 14px; border: none; border-radius: 6px; background: #2563eb; color: white; font-size: 12px; font-weight: 700; }
     .view-btn:active { background: #1d4ed8; }
 
     /* ── MODALS ── */
-    .overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5); z-index: 200;
-      align-items: flex-end; justify-content: center;
-      padding: 0;
-      -webkit-overflow-scrolling: touch;
-    }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; padding: 0; }
     .overlay.open { display: flex; animation: fadeIn 0.2s ease; }
     @keyframes fadeIn { from { background: rgba(0,0,0,0); } to { background: rgba(0,0,0,0.5); } }
 
     .modal {
-      background: white;
-      border-radius: 18px 18px 0 0;
+      background: white; border-radius: 18px 18px 0 0;
       padding: clamp(16px, 4vw, 28px);
       padding-bottom: max(clamp(16px, 4vw, 28px), env(safe-area-inset-bottom));
-      width: 100%;
-      max-width: 520px;
-      max-height: 92vh;
-      max-height: 92dvh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      width: 100%; max-width: 520px;
+      max-height: 92vh; max-height: 92dvh;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
       animation: slideUp 0.25s ease;
     }
     .modal.sm { text-align: center; }
@@ -419,117 +242,52 @@
     .info-lbl { font-weight: 700; color: #374151; min-width: 86px; }
     .info-val { color: #64748b; word-break: break-word; flex: 1; min-width: 140px; }
 
-    .detail-box {
-      background: #f8fafc; border: 1px solid #e2e8f0;
-      border-radius: 8px; padding: 12px;
-      font-size: 14px; color: #374151;
-      margin-bottom: 12px; line-height: 1.55;
-      word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;
-    }
+    .detail-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 14px; color: #374151; margin-bottom: 12px; line-height: 1.55; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
 
-    .action-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px; margin-top: 12px;
-    }
-    .action-row button {
-      padding: 12px 8px; border: none; border-radius: 10px;
-      font-size: 13px; font-weight: 700; color: white;
-    }
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+    .action-row button { padding: 12px 8px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; color: white; }
 
     .manage-msg { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; display: none; }
     .manage-msg.show { display: block; }
     .manage-msg.msg-error { background: #fee2e2; color: #991b1b; }
     .manage-msg.msg-success { background: #dcfce7; color: #166534; }
 
-    /* ═══════════════════════════════════════════
-       RESPONSIVE BREAKPOINTS
-    ═══════════════════════════════════════════ */
-
-    /* ── Small phones (< 375px, e.g. iPhone SE) ── */
+    /* ── RESPONSIVE ── */
     @media (max-width: 374px) {
-      body { padding: 8px; font-size: 14px; }
+      body { padding: 8px; }
       .auth-wrap { padding: 18px 14px; border-radius: 14px; }
       .btn-main { padding: 12px; }
       .tab-btn { font-size: 10px; padding: 8px 2px; }
-      .sm-btn { padding: 7px 9px; font-size: 11px; }
-      .stats-row { gap: 8px; }
-      .stat-val { font-size: 22px; }
+      .sm-btn { padding: 7px 9px; }
     }
-
-    /* ── Mobile (< 700px) — card-style admin rows ── */
     @media (max-width: 699px) {
       .tbl-head { display: none; }
-      .tbl-row {
-        grid-template-columns: 1fr;
-        gap: 6px; padding: 14px;
-      }
-      .tbl-row > div::before {
-        content: attr(data-label);
-        font-weight: 700; font-size: 10px; color: #94a3b8;
-        display: block; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
-      }
+      .tbl-row { grid-template-columns: 1fr; gap: 6px; padding: 14px; }
+      .tbl-row > div::before { content: attr(data-label); font-weight: 700; font-size: 10px; color: #94a3b8; display: block; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
       .tbl-row > div { white-space: normal; word-break: break-word; }
       .tbl-row .clip { overflow: visible; text-overflow: clip; white-space: normal; }
-
-      /* stack action row 2x2 on mobile */
-      .action-row { grid-template-columns: 1fr 1fr; }
     }
-
-    /* ── Tablet (700px – 1023px) ── */
     @media (min-width: 700px) and (max-width: 1023px) {
       body { padding: 20px; }
-      .auth-wrap { padding: 32px 28px; }
-      .sd-wrap { padding: 24px; }
       .stats-row { grid-template-columns: repeat(4, 1fr); gap: 14px; }
-      .stat-val { font-size: 34px; }
-      .admin-inner { padding: 24px 20px; }
       .overlay { align-items: center; padding: 16px; }
       .modal { border-radius: 16px; max-height: 90vh; }
-      @keyframes slideUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
       .action-row { grid-template-columns: repeat(4, 1fr); }
     }
-
-    /* ── Desktop (≥ 1024px) ── */
     @media (min-width: 1024px) {
       body { padding: 24px; }
-      .auth-wrap { padding: 38px 32px; }
-      .auth-icon { font-size: 52px; }
-      .auth-title { font-size: 26px; }
-      .sd-wrap { padding: 28px; }
-      .topbar h2 { font-size: 20px; }
       .stats-row { grid-template-columns: repeat(4, 1fr); gap: 16px; }
-      .stat-val { font-size: 40px; }
-      .admin-inner { padding: 30px 24px; }
-      .admin-title { font-size: 24px; }
-      .tab-btn { font-size: 14px; padding: 10px; }
       .overlay { align-items: center; padding: 20px; }
       .modal { border-radius: 16px; padding: 28px; max-height: 90vh; }
-      @keyframes slideUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
       .action-row { grid-template-columns: repeat(4, 1fr); }
     }
-
-    /* ── Landscape phone (short height) ── */
     @media (max-height: 500px) and (orientation: landscape) {
       body { align-items: flex-start; padding-top: 10px; }
-      .auth-wrap { margin: 0 auto; }
       .modal { max-height: 95vh; border-radius: 12px; }
     }
-
-    /* ── Safe area (notch / home bar) ── */
     @supports (padding: max(0px)) {
-      body {
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
-        padding-left: max(12px, env(safe-area-inset-left));
-        padding-right: max(12px, env(safe-area-inset-right));
-      }
-      .modal {
-        padding-bottom: max(22px, env(safe-area-inset-bottom));
-      }
-      .admin-page-wrap {
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-      }
+      body { padding-bottom: max(12px, env(safe-area-inset-bottom)); padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+      .modal { padding-bottom: max(22px, env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
@@ -689,12 +447,8 @@
       </div>
       <div class="tbl-card">
         <div class="tbl-head">
-          <div>Date & Time</div>
-          <div>Student Name</div>
-          <div>Email</div>
-          <div>Category</div>
-          <div>Status</div>
-          <div>Actions</div>
+          <div>Date & Time</div><div>Student Name</div><div>Email</div>
+          <div>Category</div><div>Status</div><div>Actions</div>
         </div>
         <div id="adminTblBody"><div class="tbl-empty">Loading...</div></div>
       </div>
@@ -797,14 +551,30 @@
 </div>
 
 <script>
-  // ====== GLOBALS ======
+  // ── API URL ──
+  var API_URL = 'https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec';
+
+  // ── Call Apps Script API via fetch ──
+  function api(action, params, onSuccess, onError) {
+    var body = Object.assign({ action: action }, params || {});
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // text/plain avoids CORS preflight
+      body: JSON.stringify(body)
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) { onSuccess(data); })
+    .catch(function(err) { if (onError) onError(err); });
+  }
+
+  // ── Globals ──
   var currentUser = null;
   var allRequests = [];
   var myRequests = [];
   var currentFilter = 'all';
   var selectedReq = null;
 
-  // ====== HELPERS ======
+  // ── Helpers ──
   function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
   function showMsg(id, text, type) {
     var el = document.getElementById(id);
@@ -812,12 +582,7 @@
     el.textContent = text;
     el.className = 'msg-box show ' + (type === 'error' ? 'msg-error' : 'msg-success');
   }
-  function clearMsg(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = '';
-    el.className = 'msg-box';
-  }
+  function clearMsg(id) { var el = document.getElementById(id); if (!el) return; el.textContent = ''; el.className = 'msg-box'; }
   function escapeHtml(text) {
     if (text === null || text === undefined) return '';
     var div = document.createElement('div');
@@ -825,7 +590,14 @@
     return div.innerHTML;
   }
 
-  // ====== PAGE NAVIGATION ======
+  // ── Safe localStorage ──
+  var _mem = {};
+  var _lsOk = (function() { try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; } catch(e) { return false; } })();
+  function lsGet(k) { if (_lsOk) { try { return localStorage.getItem(k); } catch(e) {} } return _mem[k] !== undefined ? _mem[k] : null; }
+  function lsSet(k, v) { if (_lsOk) { try { localStorage.setItem(k, v); return; } catch(e) {} } _mem[k] = v; }
+  function lsRemove(k) { if (_lsOk) { try { localStorage.removeItem(k); return; } catch(e) {} } delete _mem[k]; }
+
+  // ── Page navigation ──
   function showPage(name) {
     document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
     var pg = document.getElementById('page-' + name);
@@ -838,15 +610,11 @@
       document.body.style.background = 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)';
       document.body.style.alignItems = 'center';
     }
-    if (name === 'studentDashboard') {
-      resetToSubmitTab();
-      setTimeout(checkUnreadReplies, 600);
-    }
+    if (name === 'studentDashboard') { resetToSubmitTab(); setTimeout(checkUnreadReplies, 600); }
     if (name === 'home') {
       var n = document.getElementById('homeNotice');
-      if (currentUser) {
-        n.innerHTML = '<div class="logged-notice">✅ Logged in as <b>' + escapeHtml(currentUser.name) + '</b> (' + currentUser.role + ')</div>';
-      } else { n.innerHTML = ''; }
+      if (currentUser) n.innerHTML = '<div class="logged-notice">✅ Logged in as <b>' + escapeHtml(currentUser.name) + '</b> (' + currentUser.role + ')</div>';
+      else n.innerHTML = '';
     }
     if (name === 'studentLogin') applyRememberStudent();
     if (name === 'adminLogin') applyRememberAdmin();
@@ -863,16 +631,10 @@
   function openModal(id) { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-  // ====== ENTRY HANDLERS ======
-  function handleStudentClick() {
-    if (currentUser && currentUser.role === 'student') showPage('studentDashboard');
-    else showPage('studentLogin');
-  }
-  function handleAdminClick() {
-    if (currentUser && currentUser.role === 'admin') showPage('adminDashboard');
-    else showPage('adminLogin');
-  }
+  function handleStudentClick() { if (currentUser && currentUser.role === 'student') showPage('studentDashboard'); else showPage('studentLogin'); }
+  function handleAdminClick() { if (currentUser && currentUser.role === 'admin') showPage('adminDashboard'); else showPage('adminLogin'); }
   function goHome() { showPage('home'); }
+  function logout() { currentUser = null; allRequests = []; myRequests = []; selectedReq = null; showPage('home'); }
 
   function goToRegister() {
     closeModal('m-noAccount');
@@ -883,141 +645,61 @@
   function goToLoginAfterReg() {
     closeModal('m-regSuccess');
     var e = document.getElementById('srEmail').value;
-    document.getElementById('srName').value = '';
-    document.getElementById('srPass').value = '';
-    document.getElementById('srConfirm').value = '';
-    document.getElementById('srEmail').value = '';
+    ['srName','srPass','srConfirm','srEmail'].forEach(function(id) { document.getElementById(id).value = ''; });
     if (e) document.getElementById('slEmail').value = e;
     showPage('studentLogin');
   }
 
-  function logout() {
-    currentUser = null;
-    allRequests = [];
-    myRequests = [];
-    selectedReq = null;
-    showPage('home');
+  // ── Remember me ──
+  function applyRememberStudent() {
+    if (lsGet('s_rem') === '1') { setVal('slEmail', lsGet('s_email') || ''); setVal('slPass', lsGet('s_pass') || ''); var cb = document.getElementById('slRemember'); if (cb) cb.checked = true; }
   }
+  function applyRememberAdmin() {
+    if (lsGet('a_rem') === '1') { setVal('alEmail', lsGet('a_email') || ''); setVal('alPass', lsGet('a_pass') || ''); var cb = document.getElementById('alRemember'); if (cb) cb.checked = true; }
+  }
+  function initRemember() { applyRememberStudent(); applyRememberAdmin(); }
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initRemember); } else { initRemember(); }
 
-  // ====== FORGOT PASSWORD ======
-  function openForgotModal() {
-    var email = document.getElementById('slEmail').value.trim();
-    if (email) document.getElementById('fpEmail').value = email;
-    clearMsg('fpMsg');
-    openModal('m-forgotPass');
-  }
-  function closeForgotModal() {
-    closeModal('m-forgotPass');
-    document.getElementById('fpEmail').value = '';
-    clearMsg('fpMsg');
-  }
+  // ── Forgot password ──
+  function openForgotModal() { var e = document.getElementById('slEmail').value.trim(); if (e) document.getElementById('fpEmail').value = e; clearMsg('fpMsg'); openModal('m-forgotPass'); }
+  function closeForgotModal() { closeModal('m-forgotPass'); document.getElementById('fpEmail').value = ''; clearMsg('fpMsg'); }
   function submitForgotPassword() {
     var email = document.getElementById('fpEmail').value.trim();
     if (!email) { showMsg('fpMsg', 'Please enter your email', 'error'); return; }
     if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('fpMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
     showMsg('fpMsg', 'Sending...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          showMsg('fpMsg', '✅ Temporary password sent!', 'success');
-          setTimeout(function() { closeForgotModal(); }, 2500);
-        } else { showMsg('fpMsg', r.message, 'error'); }
-      })
-      .withFailureHandler(function(e) { showMsg('fpMsg', 'Error: ' + e.message, 'error'); })
-      .forgotPassword(email);
+    api('forgotPassword', { email: email }, function(r) {
+      if (r.success) { showMsg('fpMsg', '✅ ' + r.message, 'success'); setTimeout(closeForgotModal, 2500); }
+      else showMsg('fpMsg', r.message, 'error');
+    }, function(e) { showMsg('fpMsg', 'Network error: ' + e.message, 'error'); });
   }
 
-  // ====== REMEMBER ME ======
-  // Safe storage: tries localStorage first, falls back to in-memory object
-  // (localStorage is blocked in GAS sandboxed iframes on mobile Safari/Chrome)
-  var _memStore = {};
-  var _lsAvailable = (function() {
-    try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }
-    catch(e) { return false; }
-  })();
-  function lsGet(k) {
-    if (_lsAvailable) { try { return localStorage.getItem(k); } catch(e) {} }
-    return _memStore[k] !== undefined ? _memStore[k] : null;
-  }
-  function lsSet(k, v) {
-    if (_lsAvailable) { try { localStorage.setItem(k, v); return; } catch(e) {} }
-    _memStore[k] = v;
-  }
-  function lsRemove(k) {
-    if (_lsAvailable) { try { localStorage.removeItem(k); return; } catch(e) {} }
-    delete _memStore[k];
-  }
-
-  function applyRememberStudent() {
-    if (lsGet('s_rem') === '1') {
-      setVal('slEmail', lsGet('s_email') || '');
-      setVal('slPass', lsGet('s_pass') || '');
-      var cb = document.getElementById('slRemember');
-      if (cb) cb.checked = true;
-    }
-  }
-  function applyRememberAdmin() {
-    if (lsGet('a_rem') === '1') {
-      setVal('alEmail', lsGet('a_email') || '');
-      setVal('alPass', lsGet('a_pass') || '');
-      var cb = document.getElementById('alRemember');
-      if (cb) cb.checked = true;
-    }
-  }
-
-  function initRemember() { applyRememberStudent(); applyRememberAdmin(); }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initRemember);
-  } else { initRemember(); }
-  window.addEventListener('load', initRemember);
-
-  // ====== GLOBAL ERROR CATCHER ======
-  window.onerror = function(msg, src, line) {
-    var text = 'JS Error: ' + msg + ' (line ' + line + ')';
-    var ids = ['slMsg','alMsg','srMsg','sdMsg','fpMsg','cpMsg'];
-    for (var i = 0; i < ids.length; i++) {
-      var el = document.getElementById(ids[i]);
-      if (el) { var pg = el.closest ? el.closest('.page') : null;
-        if (pg && pg.classList.contains('active')) { showMsg(ids[i], text, 'error'); break; } }
-    }
-    return false;
-  };
-
-  // ====== STUDENT LOGIN / REGISTER ======
+  // ── Student login ──
   function studentLogin() {
-    try {
-      var email = document.getElementById('slEmail').value.trim();
-      var pass = document.getElementById('slPass').value;
-      var remEl = document.getElementById('slRemember');
-      var rem = remEl ? remEl.checked : false;
-      if (!email || !pass) { showMsg('slMsg', 'Please fill all fields', 'error'); return; }
-      if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('slMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
-      showMsg('slMsg', 'Logging in...', 'success');
-      if (typeof google === 'undefined' || !google.script) {
-        showMsg('slMsg', 'Error: Not running inside Google Apps Script. Open the deployed URL.', 'error'); return;
+    var email = document.getElementById('slEmail').value.trim();
+    var pass = document.getElementById('slPass').value;
+    var remEl = document.getElementById('slRemember');
+    var rem = remEl ? remEl.checked : false;
+    if (!email || !pass) { showMsg('slMsg', 'Please fill all fields', 'error'); return; }
+    if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('slMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
+    showMsg('slMsg', 'Logging in...', 'success');
+    api('loginStudent', { email: email, password: pass }, function(r) {
+      if (r.success) {
+        if (rem) { lsSet('s_email', email); lsSet('s_pass', pass); lsSet('s_rem', '1'); }
+        else { lsRemove('s_email'); lsRemove('s_pass'); lsRemove('s_rem'); }
+        currentUser = r.user;
+        document.getElementById('sdWelcome').textContent = r.user.name;
+        clearMsg('slMsg');
+        showPage('studentDashboard');
+        setTimeout(checkUnreadReplies, 800);
+      } else {
+        if (r.code === 'NO_ACCOUNT') { clearMsg('slMsg'); openModal('m-noAccount'); }
+        else showMsg('slMsg', r.message, 'error');
       }
-      google.script.run
-        .withSuccessHandler(function(r) {
-          try {
-            if (r.success) {
-              if (rem) { lsSet('s_email', email); lsSet('s_pass', pass); lsSet('s_rem', '1'); }
-              else { lsRemove('s_email'); lsRemove('s_pass'); lsRemove('s_rem'); }
-              currentUser = r.user;
-              document.getElementById('sdWelcome').textContent = r.user.name;
-              clearMsg('slMsg');
-              showPage('studentDashboard');
-              setTimeout(checkUnreadReplies, 800);
-            } else {
-              if (r.code === 'NO_ACCOUNT') { clearMsg('slMsg'); openModal('m-noAccount'); }
-              else showMsg('slMsg', r.message, 'error');
-            }
-          } catch(e2) { showMsg('slMsg', 'Handler error: ' + e2.message, 'error'); }
-        })
-        .withFailureHandler(function(e) { showMsg('slMsg', 'Server error: ' + e.message, 'error'); })
-        .loginStudent(email, pass);
-    } catch(e) { showMsg('slMsg', 'Login error: ' + e.message, 'error'); }
+    }, function(e) { showMsg('slMsg', 'Network error: ' + e.message, 'error'); });
   }
 
+  // ── Student register ──
   function studentRegister() {
     var name = document.getElementById('srName').value.trim();
     var email = document.getElementById('srEmail').value.trim();
@@ -1028,45 +710,32 @@
     if (pass.length < 6) { showMsg('srMsg', 'Password must be at least 6 characters', 'error'); return; }
     if (pass !== conf) { showMsg('srMsg', 'Passwords do not match', 'error'); return; }
     showMsg('srMsg', 'Creating account...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) { clearMsg('srMsg'); openModal('m-regSuccess'); }
-        else showMsg('srMsg', r.message, 'error');
-      })
-      .withFailureHandler(function(e) { showMsg('srMsg', 'Error: ' + e.message, 'error'); })
-      .registerStudent(email, name, pass);
+    api('registerStudent', { email: email, name: name, password: pass }, function(r) {
+      if (r.success) { clearMsg('srMsg'); openModal('m-regSuccess'); }
+      else showMsg('srMsg', r.message, 'error');
+    }, function(e) { showMsg('srMsg', 'Network error: ' + e.message, 'error'); });
   }
 
-  // ====== ADMIN LOGIN ======
+  // ── Admin login ──
   function adminLogin() {
-    try {
-      var email = document.getElementById('alEmail').value.trim();
-      var pass = document.getElementById('alPass').value;
-      var remEl = document.getElementById('alRemember');
-      var rem = remEl ? remEl.checked : false;
-      if (!email || !pass) { showMsg('alMsg', 'Please fill all fields', 'error'); return; }
-      showMsg('alMsg', 'Logging in...', 'success');
-      if (typeof google === 'undefined' || !google.script) {
-        showMsg('alMsg', 'Error: Not running inside Google Apps Script. Open the deployed URL.', 'error'); return;
-      }
-      google.script.run
-        .withSuccessHandler(function(r) {
-          try {
-            if (r.success) {
-              if (rem) { lsSet('a_email', email); lsSet('a_pass', pass); lsSet('a_rem', '1'); }
-              else { lsRemove('a_email'); lsRemove('a_pass'); lsRemove('a_rem'); }
-              currentUser = r.user;
-              clearMsg('alMsg');
-              showPage('adminDashboard');
-            } else showMsg('alMsg', r.message, 'error');
-          } catch(e2) { showMsg('alMsg', 'Handler error: ' + e2.message, 'error'); }
-        })
-        .withFailureHandler(function(e) { showMsg('alMsg', 'Server error: ' + e.message, 'error'); })
-        .loginAdmin(email, pass);
-    } catch(e) { showMsg('alMsg', 'Login error: ' + e.message, 'error'); }
+    var email = document.getElementById('alEmail').value.trim();
+    var pass = document.getElementById('alPass').value;
+    var remEl = document.getElementById('alRemember');
+    var rem = remEl ? remEl.checked : false;
+    if (!email || !pass) { showMsg('alMsg', 'Please fill all fields', 'error'); return; }
+    showMsg('alMsg', 'Logging in...', 'success');
+    api('loginAdmin', { email: email, password: pass }, function(r) {
+      if (r.success) {
+        if (rem) { lsSet('a_email', email); lsSet('a_pass', pass); lsSet('a_rem', '1'); }
+        else { lsRemove('a_email'); lsRemove('a_pass'); lsRemove('a_rem'); }
+        currentUser = r.user;
+        clearMsg('alMsg');
+        showPage('adminDashboard');
+      } else showMsg('alMsg', r.message, 'error');
+    }, function(e) { showMsg('alMsg', 'Network error: ' + e.message, 'error'); });
   }
 
-  // ====== TABS ======
+  // ── Tabs ──
   function switchTab(name, ev) {
     document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
     document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
@@ -1076,33 +745,24 @@
     if (name === 'settings') { loadSettings(); }
   }
 
-  // ====== SUBMIT REQUEST ======
+  // ── Submit request ──
   function submitRequest() {
     var cat = document.getElementById('sdCat').value;
     var det = document.getElementById('sdDetail').value.trim();
     if (!det) { showMsg('sdMsg', 'กรุณากรอกรายละเอียด', 'error'); return; }
     showMsg('sdMsg', 'กำลังส่ง...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          showMsg('sdMsg', '✅ ส่งคำร้องสำเร็จ!', 'success');
-          document.getElementById('sdDetail').value = '';
-          setTimeout(function() { clearMsg('sdMsg'); }, 3000);
-        } else showMsg('sdMsg', r.message, 'error');
-      })
-      .withFailureHandler(function(e) { showMsg('sdMsg', 'Error: ' + e.message, 'error'); })
-      .submitRequest(currentUser.email, cat, det);
+    api('submitRequest', { studentEmail: currentUser.email, category: cat, details: det }, function(r) {
+      if (r.success) { showMsg('sdMsg', '✅ ส่งคำร้องสำเร็จ!', 'success'); document.getElementById('sdDetail').value = ''; setTimeout(function() { clearMsg('sdMsg'); }, 3000); }
+      else showMsg('sdMsg', r.message, 'error');
+    }, function(e) { showMsg('sdMsg', 'Network error: ' + e.message, 'error'); });
   }
 
-  // ====== HISTORY ======
+  // ── History ──
   function loadHistory() {
     document.getElementById('historyList').innerHTML = '<div class="empty-state">Loading...</div>';
-    google.script.run.withSuccessHandler(function(reqs) {
+    api('getMyRequests', { studentEmail: currentUser.email }, function(reqs) {
       myRequests = reqs || [];
-      if (!myRequests.length) {
-        document.getElementById('historyList').innerHTML = '<div class="empty-state">📭 ยังไม่มีคำร้อง</div>';
-        return;
-      }
+      if (!myRequests.length) { document.getElementById('historyList').innerHTML = '<div class="empty-state">📭 ยังไม่มีคำร้อง</div>'; return; }
       var seenKey = 'seen_' + currentUser.email;
       var seen = JSON.parse(lsGet(seenKey) || '[]');
       var html = '';
@@ -1117,84 +777,61 @@
           + '<div class="req-detail">' + escapeHtml(r.details) + '</div>'
           + '<span class="badge badge-' + st + '">' + (stMap[st] || st) + '</span>';
         if (hasReply) {
-          html += '<div style="margin-top:10px;">'
-            + '<button class="view-reply-btn" onclick="openReplyModal(' + idx + ')">'
-            + '💬 ดูคำตอบ (View Reply)'
-            + (isNew ? '<span class="new-reply-tag">NEW</span>' : '')
-            + '</button></div>';
+          html += '<div style="margin-top:10px;"><button class="view-reply-btn" onclick="openReplyModal(' + idx + ')">💬 ดูคำตอบ (View Reply)'
+            + (isNew ? '<span class="new-reply-tag">NEW</span>' : '') + '</button></div>';
         }
         html += '</div>';
       });
       document.getElementById('historyList').innerHTML = html;
-    }).getMyRequests(currentUser.email);
+    }, function() { document.getElementById('historyList').innerHTML = '<div class="empty-state">❌ Failed to load</div>'; });
   }
 
   function openReplyModal(idx) {
-    var r = myRequests[idx];
-    if (!r) return;
+    var r = myRequests[idx]; if (!r) return;
     var seenKey = 'seen_' + currentUser.email;
     var seen = JSON.parse(lsGet(seenKey) || '[]');
-    if (seen.indexOf(String(r.id)) === -1) {
-      seen.push(String(r.id));
-      lsSet(seenKey, JSON.stringify(seen));
-    }
+    if (seen.indexOf(String(r.id)) === -1) { seen.push(String(r.id)); lsSet(seenKey, JSON.stringify(seen)); }
     document.getElementById('vrMeta').textContent = r.timestamp || '';
     document.getElementById('vrCategory').textContent = r.category || '';
     document.getElementById('vrRequest').textContent = r.details || '';
     document.getElementById('vrReply').textContent = r.reply || '';
     openModal('m-viewReply');
-    updateBadge(0);
-    checkUnreadReplies();
-    loadHistory();
+    checkUnreadReplies(); loadHistory();
   }
 
-  // ====== NOTIFICATION BADGE ======
+  // ── Notification badge ──
   function checkUnreadReplies() {
     if (!currentUser) return;
-    google.script.run.withSuccessHandler(function(reqs) {
+    api('getMyRequests', { studentEmail: currentUser.email }, function(reqs) {
       var seenKey = 'seen_' + currentUser.email;
       var seen = JSON.parse(lsGet(seenKey) || '[]');
-      var unread = (reqs || []).filter(function(r) {
-        return r.reply && String(r.reply).trim() !== '' && seen.indexOf(String(r.id)) === -1;
-      });
+      var unread = (reqs || []).filter(function(r) { return r.reply && String(r.reply).trim() !== '' && seen.indexOf(String(r.id)) === -1; });
       updateBadge(unread.length);
-    }).getMyRequests(currentUser.email);
+    });
   }
-
   function updateBadge(count) {
     var badge = document.getElementById('notifBadge');
-    if (count > 0) {
-      badge.textContent = count > 9 ? '9+' : count;
-      badge.classList.add('show');
-    } else { badge.classList.remove('show'); }
+    if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.add('show'); }
+    else { badge.classList.remove('show'); }
   }
-
   function markAllSeen() {
     if (!currentUser) return;
-    google.script.run.withSuccessHandler(function(reqs) {
+    api('getMyRequests', { studentEmail: currentUser.email }, function(reqs) {
       var seenKey = 'seen_' + currentUser.email;
       var seen = JSON.parse(lsGet(seenKey) || '[]');
-      (reqs || []).forEach(function(r) {
-        if (r.reply && String(r.reply).trim() !== '' && seen.indexOf(String(r.id)) === -1) {
-          seen.push(String(r.id));
-        }
-      });
-      lsSet(seenKey, JSON.stringify(seen));
-      updateBadge(0);
-    }).getMyRequests(currentUser.email);
+      (reqs || []).forEach(function(r) { if (r.reply && String(r.reply).trim() !== '' && seen.indexOf(String(r.id)) === -1) seen.push(String(r.id)); });
+      lsSet(seenKey, JSON.stringify(seen)); updateBadge(0);
+    });
   }
 
-  // ====== SETTINGS ======
+  // ── Settings ──
   function loadSettings() {
     if (!currentUser) return;
     document.getElementById('setAccName').textContent = '👤 ' + currentUser.name;
     document.getElementById('setAccEmail').textContent = '📧 ' + currentUser.email;
-    document.getElementById('cpOld').value = '';
-    document.getElementById('cpNew').value = '';
-    document.getElementById('cpConfirm').value = '';
+    ['cpOld','cpNew','cpConfirm'].forEach(function(id) { document.getElementById(id).value = ''; });
     clearMsg('cpMsg');
   }
-
   function changeMyPassword() {
     var oldP = document.getElementById('cpOld').value;
     var newP = document.getElementById('cpNew').value;
@@ -1204,35 +841,27 @@
     if (newP !== conf) { showMsg('cpMsg', 'New passwords do not match', 'error'); return; }
     if (oldP === newP) { showMsg('cpMsg', 'New password must be different', 'error'); return; }
     showMsg('cpMsg', 'Updating...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          showMsg('cpMsg', '✅ ' + r.message, 'success');
-          document.getElementById('cpOld').value = '';
-          document.getElementById('cpNew').value = '';
-          document.getElementById('cpConfirm').value = '';
-          if (lsGet('s_rem') === '1') { lsSet('s_pass', newP); }
-          setTimeout(function() { clearMsg('cpMsg'); }, 4000);
-        } else { showMsg('cpMsg', r.message, 'error'); }
-      })
-      .withFailureHandler(function(e) { showMsg('cpMsg', 'Error: ' + e.message, 'error'); })
-      .changePassword(currentUser.email, oldP, newP);
+    api('changePassword', { email: currentUser.email, oldPassword: oldP, newPassword: newP }, function(r) {
+      if (r.success) {
+        showMsg('cpMsg', '✅ ' + r.message, 'success');
+        ['cpOld','cpNew','cpConfirm'].forEach(function(id) { document.getElementById(id).value = ''; });
+        if (lsGet('s_rem') === '1') lsSet('s_pass', newP);
+        setTimeout(function() { clearMsg('cpMsg'); }, 4000);
+      } else showMsg('cpMsg', r.message, 'error');
+    }, function(e) { showMsg('cpMsg', 'Network error: ' + e.message, 'error'); });
   }
 
-  // ====== ADMIN DASHBOARD ======
+  // ── Admin dashboard ──
   function loadAdminData() {
-    google.script.run.withSuccessHandler(function(s) {
+    api('getStats', {}, function(s) {
       document.getElementById('stTotal').textContent = s.total;
       document.getElementById('stPending').textContent = s.pending;
       document.getElementById('stCompleted').textContent = s.completed;
       document.getElementById('stRejected').textContent = s.rejected;
-    }).getStats();
-
+    });
     document.getElementById('adminTblBody').innerHTML = '<div class="tbl-empty">Loading...</div>';
-    google.script.run.withSuccessHandler(function(reqs) {
-      allRequests = reqs || [];
-      renderTable();
-    }).getAllRequests();
+    api('getAllRequests', {}, function(reqs) { allRequests = reqs || []; renderTable(); },
+      function() { document.getElementById('adminTblBody').innerHTML = '<div class="tbl-empty">❌ Failed to load</div>'; });
   }
 
   function applyFilter(f, ev) {
@@ -1241,13 +870,9 @@
     if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
     renderTable();
   }
-
   function getFilteredList() {
-    return currentFilter === 'all' ? allRequests : allRequests.filter(function(r) {
-      return (r.status || 'pending').toLowerCase() === currentFilter;
-    });
+    return currentFilter === 'all' ? allRequests : allRequests.filter(function(r) { return (r.status || 'pending').toLowerCase() === currentFilter; });
   }
-
   function renderTable() {
     var list = getFilteredList();
     var body = document.getElementById('adminTblBody');
@@ -1267,14 +892,10 @@
     body.innerHTML = html;
   }
 
-  // ====== ADMIN MANAGE MODAL ======
+  // ── Admin manage modal ──
   function openManage(idx) {
-    var list = getFilteredList();
-    selectedReq = list[idx];
-    if (!selectedReq) return;
-    var r = selectedReq;
-    var st = (r.status || 'pending').toLowerCase();
-
+    var list = getFilteredList(); selectedReq = list[idx]; if (!selectedReq) return;
+    var r = selectedReq; var st = (r.status || 'pending').toLowerCase();
     document.getElementById('manageInfo').innerHTML =
       '<div class="info-row"><span class="info-lbl">📅 Date</span><span class="info-val">' + escapeHtml(r.timestamp) + '</span></div>'
       + '<div class="info-row"><span class="info-lbl">👤 Student</span><span class="info-val">' + escapeHtml(r.studentName || '-') + '</span></div>'
@@ -1283,81 +904,48 @@
       + '<div class="info-row"><span class="info-lbl">📊 Status</span><span class="info-val"><span class="badge badge-' + st + '">' + st + '</span></span></div>'
       + '<div style="margin-top:10px;font-weight:700;font-size:14px;color:#374151;margin-bottom:6px;">📝 Details:</div>'
       + '<div class="detail-box">' + escapeHtml(r.details) + '</div>'
-      + (r.reply
-          ? '<div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:6px;">💬 Previous Reply:</div>'
-            + '<div class="detail-box" style="background:#dbeafe; color:#1e3a8a; border-color:#93c5fd;">' + escapeHtml(r.reply) + '</div>'
-          : '');
-
+      + (r.reply ? '<div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:6px;">💬 Previous Reply:</div><div class="detail-box" style="background:#dbeafe;color:#1e3a8a;border-color:#93c5fd;">' + escapeHtml(r.reply) + '</div>' : '');
     document.getElementById('manageReplyTxt').value = r.reply || '';
-    clearManageMsg();
-    openModal('m-manage');
+    clearManageMsg(); openModal('m-manage');
   }
 
-  function showManageMsg(text, type) {
-    var el = document.getElementById('manageMsg');
-    el.textContent = text;
-    el.className = 'manage-msg show ' + (type === 'error' ? 'msg-error' : 'msg-success');
-  }
-  function clearManageMsg() {
-    var el = document.getElementById('manageMsg');
-    el.textContent = '';
-    el.className = 'manage-msg';
-  }
+  function showManageMsg(text, type) { var el = document.getElementById('manageMsg'); el.textContent = text; el.className = 'manage-msg show ' + (type === 'error' ? 'msg-error' : 'msg-success'); }
+  function clearManageMsg() { var el = document.getElementById('manageMsg'); el.textContent = ''; el.className = 'manage-msg'; }
 
   function submitReply() {
     if (!selectedReq) return;
     var txt = document.getElementById('manageReplyTxt').value.trim();
     if (!txt) { showManageMsg('Reply cannot be empty', 'error'); return; }
     showManageMsg('Sending...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          showManageMsg('✅ Reply sent successfully!', 'success');
-          setTimeout(function() { closeModal('m-manage'); loadAdminData(); }, 1200);
-        } else { showManageMsg(r.message || 'Failed', 'error'); }
-      })
-      .withFailureHandler(function(e) { showManageMsg('Error: ' + e.message, 'error'); })
-      .replyToRequest(selectedReq.rowIndex, txt);
+    api('replyToRequest', { rowIndex: selectedReq.rowIndex, replyText: txt }, function(r) {
+      if (r.success) { showManageMsg('✅ Reply sent!', 'success'); setTimeout(function() { closeModal('m-manage'); loadAdminData(); }, 1200); }
+      else showManageMsg(r.message || 'Failed', 'error');
+    }, function(e) { showManageMsg('Network error: ' + e.message, 'error'); });
   }
 
   function changeStatus(newStatus) {
     if (!selectedReq) return;
     showManageMsg('Updating...', 'success');
-    google.script.run
-      .withSuccessHandler(function(r) {
-        if (r.success) {
-          showManageMsg('✅ Status updated', 'success');
-          setTimeout(function() { closeModal('m-manage'); loadAdminData(); }, 1000);
-        } else { showManageMsg(r.message || 'Failed', 'error'); }
-      })
-      .withFailureHandler(function(e) { showManageMsg('Error: ' + e.message, 'error'); })
-      .updateRequestStatus(selectedReq.rowIndex, newStatus);
+    api('updateRequestStatus', { rowIndex: selectedReq.rowIndex, newStatus: newStatus }, function(r) {
+      if (r.success) { showManageMsg('✅ Status updated', 'success'); setTimeout(function() { closeModal('m-manage'); loadAdminData(); }, 1000); }
+      else showManageMsg(r.message || 'Failed', 'error');
+    }, function(e) { showManageMsg('Network error: ' + e.message, 'error'); });
   }
 
   function confirmDelete() { if (!selectedReq) return; openModal('m-deleteConfirm'); }
-
   function performDelete() {
     if (!selectedReq) { closeModal('m-deleteConfirm'); return; }
-    google.script.run
-      .withSuccessHandler(function(r) {
-        closeModal('m-deleteConfirm');
-        if (r.success) { closeModal('m-manage'); loadAdminData(); }
-        else { showManageMsg(r.message || 'Failed to delete', 'error'); }
-      })
-      .withFailureHandler(function(e) {
-        closeModal('m-deleteConfirm');
-        showManageMsg('Error: ' + e.message, 'error');
-      })
-      .deleteRequest(selectedReq.rowIndex);
+    api('deleteRequest', { rowIndex: selectedReq.rowIndex }, function(r) {
+      closeModal('m-deleteConfirm');
+      if (r.success) { closeModal('m-manage'); loadAdminData(); }
+      else showManageMsg(r.message || 'Failed to delete', 'error');
+    }, function(e) { closeModal('m-deleteConfirm'); showManageMsg('Network error: ' + e.message, 'error'); });
   }
 
-  // ====== Close modal on outside click ======
+  // ── Close modal on outside click ──
   document.querySelectorAll('.overlay').forEach(function(ov) {
-    ov.addEventListener('click', function(e) {
-      if (e.target === ov) ov.classList.remove('open');
-    });
+    ov.addEventListener('click', function(e) { if (e.target === ov) ov.classList.remove('open'); });
   });
 </script>
-
 </body>
 </html>
