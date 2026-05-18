@@ -1,12 +1,35 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Consultation App</title>
     <style>
-      iframe { width: 100%; height: 100vh; border: none; }
-      body { margin: 0; }
+        /* This removes margins and forces the web app to fill the entire browser window */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
     </style>
-  </head>
-  <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec"></iframe>
-  </body>
+</head>
+<body>
+
+    <!-- Your exact Google Apps Script URL embedded safely -->
+    <iframe 
+        src="https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec" 
+        allow="geolocation; microphone; camera; midi; encrypted-media;"
+        sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-forms allow-popups allow-modals">
+    </iframe >
+
+</body>
 </html>
