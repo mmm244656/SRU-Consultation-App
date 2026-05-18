@@ -1,18 +1,1319 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRU Consultation App</title>
-    <link rel="apple-touch-icon" href="logo.png">
-<link rel="icon" type="image/png" href="logo.png">
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html {
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%; /* prevent iOS font boosting */
+      text-size-adjust: 100%;
+    }
+    body {
+      min-height: 100vh;
+      min-height: 100dvh; /* dynamic viewport height (handles mobile browser bars) */
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+      font-size: 15px;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
 
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { border: none; width: 100%; height: 100%; }
-    </style>
+    /* ── INPUT FONT SIZE: prevent iOS zoom on focus ── */
+    input, textarea, select, button {
+      font-size: 16px !important;
+      touch-action: manipulation;
+    }
+    button { cursor: pointer; }
+
+    /* ── PAGES ── */
+    .page { display: none; width: 100%; }
+    .page.active { display: block; }
+
+    /* ── AUTH CARD ── */
+    .auth-wrap {
+      background: white;
+      padding: clamp(20px, 5vw, 38px) clamp(16px, 5vw, 32px);
+      border-radius: 18px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+      margin: 0 auto;
+    }
+    .auth-icon { font-size: clamp(38px, 8vw, 52px); margin-bottom: 6px; }
+    .auth-title { font-size: clamp(18px, 5vw, 26px); font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .auth-sub { font-size: clamp(12px, 3vw, 14px); color: #64748b; margin-bottom: 22px; }
+
+    /* ── FORM FIELDS ── */
+    .field {
+      width: 100%;
+      padding: 13px 14px;
+      margin: 6px 0;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      line-height: 1.4;
+    }
+    .field:focus { outline: none; border-color: #667eea; }
+    .hint { font-size: 12px; color: #94a3b8; text-align: left; margin: -2px 0 6px 4px; }
+
+    /* ── CUSTOM SELECT ── */
+    select.field {
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      appearance: none !important;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3e%3cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 12px 8px;
+      background-color: #fff;
+      padding-right: 40px !important;
+      cursor: pointer;
+    }
+    select.field:focus {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3e%3cpath d='M1 6.5L6 1.5L11 6.5' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+    }
+    select.field::-ms-expand { display: none; }
+
+    .remember-row { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-size: 14px; color: #475569; }
+    .remember-row input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* ── BUTTONS ── */
+    .btn-main {
+      width: 100%; padding: 14px;
+      border: none; border-radius: 10px;
+      font-size: clamp(14px, 3.5vw, 15px);
+      font-weight: 700; color: white;
+      margin: 7px 0;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+
+    .bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-blue-grad { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .bg-pink-grad { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-blue { background: #2563eb; }
+    .bg-green { background: #10b981; }
+    .bg-gray { background: #6b7280; }
+
+    .link-btn { background: none; border: none; color: #667eea; font-size: 14px; margin-top: 12px; display: block; width: 100%; padding: 8px; }
+    .forgot-btn { background: none; border: none; color: #94a3b8; font-size: 13px; margin-top: 2px; display: block; width: 100%; text-align: right; padding: 4px; }
+    .forgot-btn:active { color: #667eea; }
+    .back-btn { background: none; border: none; color: #94a3b8; font-size: 13px; margin-top: 6px; display: block; width: 100%; padding: 8px; }
+
+    .msg-box { margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 14px; display: none; word-wrap: break-word; }
+    .msg-box.show { display: block; }
+    .msg-error { background: #fee2e2; color: #991b1b; }
+    .msg-success { background: #dcfce7; color: #166534; }
+    .logged-notice { margin-top: 14px; padding: 10px; background: #f0fdf4; border-radius: 8px; font-size: 13px; color: #166534; }
+
+    /* ── STUDENT DASHBOARD ── */
+    .sd-wrap {
+      background: white;
+      border-radius: 16px;
+      padding: clamp(14px, 4vw, 28px);
+      width: 100%;
+      max-width: 620px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .topbar h2 {
+      font-size: clamp(14px, 4vw, 20px);
+      color: #1e293b;
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+    }
+    .topbar-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .sm-btn {
+      padding: 8px 12px;
+      border: none; border-radius: 8px;
+      font-size: clamp(11px, 2.5vw, 13px);
+      font-weight: 600; color: white;
+      white-space: nowrap;
+    }
+    .sm-btn:active { opacity: 0.85; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 2px;
+      overflow: hidden;
+    }
+    .tab-wrap { position: relative; flex: 1; min-width: 0; }
+    .tab-wrap .tab-btn { width: 100%; }
+    .tab-btn {
+      flex: 1; min-width: 0;
+      padding: clamp(8px, 2vw, 10px) 4px;
+      border: none; background: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: clamp(11px, 3vw, 14px);
+      color: #64748b;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tab-btn.active {
+      background: white;
+      color: #1e3a8a;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      border: 1.5px solid #1e3a8a;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ── FORM CARD ── */
+    .form-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: clamp(12px, 3vw, 16px); }
+    .form-card h3 { font-size: clamp(14px, 3.5vw, 16px); color: #1e3a8a; margin-bottom: 12px; }
+    textarea.field { min-height: 110px; resize: vertical; }
+
+    /* ── REQUEST CARDS ── */
+    .req-card {
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 14px; margin-bottom: 10px;
+      word-wrap: break-word; overflow-wrap: break-word;
+    }
+    .req-meta { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+    .req-cat { font-weight: 700; color: #1e3a8a; font-size: 14px; }
+    .req-detail { color: #374151; font-size: 14px; margin: 6px 0; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-completed { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+    .view-reply-btn {
+      margin-top: 10px; padding: 9px 14px;
+      background: #2563eb; color: white;
+      border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .view-reply-btn:active { background: #1d4ed8; }
+
+    .new-reply-tag {
+      display: inline-block; background: #ef4444; color: white;
+      padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800;
+      margin-left: 6px; vertical-align: middle;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .empty-state { text-align: center; color: #94a3b8; padding: 36px 0; font-size: 14px; }
+
+    /* ── NOTIFICATION BADGE ── */
+    .notif-dot {
+      position: absolute;
+      top: 4px; right: 4px;
+      background: #ef4444;
+      color: white;
+      border-radius: 999px;
+      font-size: 10px; font-weight: 800;
+      min-width: 18px; height: 18px;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 0 5px;
+      pointer-events: none;
+      z-index: 10;
+      border: 2px solid white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      animation: popIn 0.3s ease;
+    }
+    .notif-dot.show { display: flex; }
+    @keyframes popIn {
+      0% { transform: scale(0); }
+      70% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* ── SETTINGS ── */
+    .acct-info-box {
+      background: #eff6ff; border: 1px solid #bfdbfe;
+      border-radius: 10px; padding: 12px; margin-bottom: 16px; word-break: break-word;
+    }
+    .acct-info-box .label { font-weight: 700; color: #1e3a8a; font-size: 13px; margin-bottom: 6px; }
+    .acct-info-box .name { color: #374151; font-size: 14px; }
+    .acct-info-box .email { color: #64748b; font-size: 12px; word-break: break-all; }
+    .section-title { font-weight: 700; color: #1e3a8a; font-size: 15px; margin: 14px 0 4px; }
+    .section-sub { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+
+    /* ── ADMIN DASHBOARD ── */
+    .admin-page-wrap {
+      background: #f1f5f9;
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      padding: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      margin: -12px;
+      margin-left: max(-12px, calc(-1 * env(safe-area-inset-left)));
+      margin-right: max(-12px, calc(-1 * env(safe-area-inset-right)));
+    }
+    .admin-inner {
+      width: 100%;
+      max-width: 1200px;
+      padding: clamp(14px, 3vw, 30px) clamp(12px, 3vw, 24px);
+    }
+
+    .admin-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .admin-title { font-size: clamp(16px, 4vw, 24px); font-weight: 700; color: #1e293b; }
+    .admin-topbar-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── STATS GRID ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: white; border-radius: 12px;
+      padding: clamp(10px, 2.5vw, 14px) clamp(10px, 2.5vw, 12px);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid;
+    }
+    .stat-label { font-size: clamp(9px, 2vw, 11px); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .stat-val { font-size: clamp(24px, 6vw, 40px); font-weight: 800; }
+    .sc-total { border-color: #bfdbfe; background: #eff6ff; }
+    .sc-total .stat-label { color: #1d4ed8; }
+    .sc-total .stat-val { color: #2563eb; }
+    .sc-pending { border-color: #fde68a; background: #fffbeb; }
+    .sc-pending .stat-label { color: #b45309; }
+    .sc-pending .stat-val { color: #d97706; }
+    .sc-completed { border-color: #a7f3d0; background: #f0fdf4; }
+    .sc-completed .stat-label { color: #047857; }
+    .sc-completed .stat-val { color: #059669; }
+    .sc-rejected { border-color: #fecaca; background: #fef2f2; }
+    .sc-rejected .stat-label { color: #b91c1c; }
+    .sc-rejected .stat-val { color: #dc2626; }
+
+    /* ── FILTER BAR ── */
+    .filter-row {
+      display: flex; gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      padding: 8px 16px;
+      border: 1.5px solid #e2e8f0;
+      background: white; border-radius: 8px;
+      font-size: 13px; font-weight: 600; color: #64748b;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .filter-btn.active { background: #1e3a8a; color: white; border-color: #1e3a8a; }
+
+    /* ── ADMIN TABLE (desktop) ── */
+    .tbl-card {
+      background: white; border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .tbl-head {
+      display: grid;
+      grid-template-columns: 1.5fr 1.2fr 1.8fr 1.4fr 1fr 1fr;
+      padding: 12px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px; font-weight: 800;
+      letter-spacing: 1px; color: #64748b;
+      text-transform: uppercase;
+    }
+    .tbl-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1.2fr 1.8fr 1.4fr 1fr 1fr;
+      padding: 14px 18px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px; color: #374151;
+      align-items: center;
+    }
+    .tbl-row:last-child { border-bottom: none; }
+    .clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tbl-empty { padding: 40px 20px; text-align: center; color: #94a3b8; font-size: 14px; }
+    .view-btn {
+      padding: 8px 14px; border: none; border-radius: 6px;
+      background: #2563eb; color: white;
+      font-size: 12px; font-weight: 700;
+    }
+    .view-btn:active { background: #1d4ed8; }
+
+    /* ── MODALS ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 200;
+      align-items: flex-end; justify-content: center;
+      padding: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { background: rgba(0,0,0,0); } to { background: rgba(0,0,0,0.5); } }
+
+    .modal {
+      background: white;
+      border-radius: 18px 18px 0 0;
+      padding: clamp(16px, 4vw, 28px);
+      padding-bottom: max(clamp(16px, 4vw, 28px), env(safe-area-inset-bottom));
+      width: 100%;
+      max-width: 520px;
+      max-height: 92vh;
+      max-height: 92dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      animation: slideUp 0.25s ease;
+    }
+    .modal.sm { text-align: center; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .modal-icon { font-size: 46px; margin-bottom: 8px; }
+    .modal h3 { font-size: clamp(16px, 4vw, 19px); font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+    .modal p { font-size: 14px; color: #64748b; margin-bottom: 16px; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .modal-btns button { flex: 1; min-width: 120px; padding: 13px; border: none; border-radius: 10px; font-weight: 700; font-size: 14px; color: white; }
+    .cancel-btn { background: #e2e8f0 !important; color: #374151 !important; }
+
+    .info-row { display: flex; gap: 8px; margin-bottom: 8px; font-size: 14px; flex-wrap: wrap; }
+    .info-lbl { font-weight: 700; color: #374151; min-width: 86px; }
+    .info-val { color: #64748b; word-break: break-word; flex: 1; min-width: 140px; }
+
+    .detail-box {
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 8px; padding: 12px;
+      font-size: 14px; color: #374151;
+      margin-bottom: 12px; line-height: 1.55;
+      word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px; margin-top: 12px;
+    }
+    .action-row button {
+      padding: 12px 8px; border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700; color: white;
+    }
+
+    .manage-msg { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; display: none; }
+    .manage-msg.show { display: block; }
+    .manage-msg.msg-error { background: #fee2e2; color: #991b1b; }
+    .manage-msg.msg-success { background: #dcfce7; color: #166534; }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ═══════════════════════════════════════════ */
+
+    /* ── Small phones (< 375px, e.g. iPhone SE) ── */
+    @media (max-width: 374px) {
+      body { padding: 8px; font-size: 14px; }
+      .auth-wrap { padding: 18px 14px; border-radius: 14px; }
+      .btn-main { padding: 12px; }
+      .tab-btn { font-size: 10px; padding: 8px 2px; }
+      .sm-btn { padding: 7px 9px; font-size: 11px; }
+      .stats-row { gap: 8px; }
+      .stat-val { font-size: 22px; }
+    }
+
+    /* ── Mobile (< 700px) — card-style admin rows ── */
+    @media (max-width: 699px) {
+      .tbl-head { display: none; }
+      .tbl-row {
+        grid-template-columns: 1fr;
+        gap: 6px; padding: 14px;
+      }
+      .tbl-row > div::before {
+        content: attr(data-label);
+        font-weight: 700; font-size: 10px; color: #94a3b8;
+        display: block; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
+      }
+      .tbl-row > div { white-space: normal; word-break: break-word; }
+      .tbl-row .clip { overflow: visible; text-overflow: clip; white-space: normal; }
+
+      /* stack action row 2x2 on mobile */
+      .action-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Tablet (700px – 1023px) ── */
+    @media (min-width: 700px) and (max-width: 1023px) {
+      body { padding: 20px; }
+      .auth-wrap { padding: 32px 28px; }
+      .sd-wrap { padding: 24px; }
+      .stats-row { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .stat-val { font-size: 34px; }
+      .admin-inner { padding: 24px 20px; }
+      .overlay { align-items: center; padding: 16px; }
+      .modal { border-radius: 16px; max-height: 90vh; }
+      @keyframes slideUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .action-row { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    /* ── Desktop (≥ 1024px) ── */
+    @media (min-width: 1024px) {
+      body { padding: 24px; }
+      .auth-wrap { padding: 38px 32px; }
+      .auth-icon { font-size: 52px; }
+      .auth-title { font-size: 26px; }
+      .sd-wrap { padding: 28px; }
+      .topbar h2 { font-size: 20px; }
+      .stats-row { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+      .stat-val { font-size: 40px; }
+      .admin-inner { padding: 30px 24px; }
+      .admin-title { font-size: 24px; }
+      .tab-btn { font-size: 14px; padding: 10px; }
+      .overlay { align-items: center; padding: 20px; }
+      .modal { border-radius: 16px; padding: 28px; max-height: 90vh; }
+      @keyframes slideUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .action-row { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    /* ── Landscape phone (short height) ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      body { align-items: flex-start; padding-top: 10px; }
+      .auth-wrap { margin: 0 auto; }
+      .modal { max-height: 95vh; border-radius: 12px; }
+    }
+
+    /* ── Safe area (notch / home bar) ── */
+    @supports (padding: max(0px)) {
+      body {
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+      }
+      .modal {
+        padding-bottom: max(22px, env(safe-area-inset-bottom));
+      }
+      .admin-page-wrap {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+      }
+    }
+  </style>
 </head>
 <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec"></iframe>
+
+<!-- ====== HOME ====== -->
+<div class="page active" id="page-home">
+  <div class="auth-wrap">
+    <div class="auth-icon">🎓</div>
+    <div class="auth-title">ศูนย์ให้คำปรึกษา</div>
+    <div class="auth-sub">วิทยาลัยนานาชาติการท่องเที่ยว (SRU)</div>
+    <button class="btn-main bg-blue-grad" onclick="handleStudentClick()">👨‍🎓 Student</button>
+    <button class="btn-main bg-pink-grad" onclick="handleAdminClick()">👨‍💼 Admin</button>
+    <div id="homeNotice"></div>
+  </div>
+</div>
+
+<!-- ====== STUDENT LOGIN ====== -->
+<div class="page" id="page-studentLogin">
+  <div class="auth-wrap">
+    <div class="auth-icon">👨‍🎓</div>
+    <div class="auth-title">Student Login</div>
+    <div class="auth-sub">Sign in to continue</div>
+    <input class="field" type="email" id="slEmail" placeholder="yourname@student.sru.ac.th" autocomplete="email">
+    <div class="hint">📧 Must use @student.sru.ac.th</div>
+    <input class="field" type="password" id="slPass" placeholder="Password" autocomplete="current-password">
+    <button class="forgot-btn" onclick="openForgotModal()">Forgot password?</button>
+    <div class="remember-row">
+      <input type="checkbox" id="slRemember">
+      <label for="slRemember">Remember me</label>
+    </div>
+    <button class="btn-main bg-purple" onclick="studentLogin()">Sign In</button>
+    <div class="msg-box" id="slMsg"></div>
+    <button class="link-btn" onclick="showPage('studentRegister')">Don't have an account? <b>Register here</b></button>
+    <button class="back-btn" onclick="showPage('home')">← Back to Home</button>
+  </div>
+</div>
+
+<!-- ====== STUDENT REGISTER ====== -->
+<div class="page" id="page-studentRegister">
+  <div class="auth-wrap">
+    <div class="auth-icon">📝</div>
+    <div class="auth-title">Create Account</div>
+    <div class="auth-sub">Register as a student</div>
+    <input class="field" type="text" id="srName" placeholder="Full Name" autocomplete="name">
+    <input class="field" type="email" id="srEmail" placeholder="yourname@student.sru.ac.th" autocomplete="email">
+    <div class="hint">📧 Must use @student.sru.ac.th</div>
+    <input class="field" type="password" id="srPass" placeholder="Password (min 6 characters)" autocomplete="new-password">
+    <input class="field" type="password" id="srConfirm" placeholder="Confirm Password" autocomplete="new-password">
+    <button class="btn-main bg-purple" onclick="studentRegister()">Register</button>
+    <div class="msg-box" id="srMsg"></div>
+    <button class="link-btn" onclick="showPage('studentLogin')">Already have an account? <b>Sign in here</b></button>
+    <button class="back-btn" onclick="showPage('home')">← Back to Home</button>
+  </div>
+</div>
+
+<!-- ====== ADMIN LOGIN ====== -->
+<div class="page" id="page-adminLogin">
+  <div class="auth-wrap">
+    <div class="auth-icon">👨‍💼</div>
+    <div class="auth-title">Admin Login</div>
+    <div class="auth-sub">Administrator access only</div>
+    <input class="field" type="email" id="alEmail" placeholder="Admin Email" autocomplete="email">
+    <input class="field" type="password" id="alPass" placeholder="Password" autocomplete="current-password">
+    <div class="remember-row">
+      <input type="checkbox" id="alRemember">
+      <label for="alRemember">Remember me</label>
+    </div>
+    <button class="btn-main bg-purple" onclick="adminLogin()">Sign In</button>
+    <div class="msg-box" id="alMsg"></div>
+    <button class="back-btn" onclick="showPage('home')">← Back to Home</button>
+  </div>
+</div>
+
+<!-- ====== STUDENT DASHBOARD ====== -->
+<div class="page" id="page-studentDashboard">
+  <div class="sd-wrap">
+    <div class="topbar">
+      <h2>📚 <span id="sdWelcome"></span></h2>
+      <div class="topbar-btns">
+        <button class="sm-btn bg-green" onclick="goHome()">🏠</button>
+        <button class="sm-btn bg-gray" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tabSubmitBtn" onclick="switchTab('submit', event)">📝 ส่ง</button>
+      <div class="tab-wrap">
+        <button class="tab-btn" id="tabHistoryBtn" onclick="switchTab('history', event)">📁 ประวัติ</button>
+        <span class="notif-dot" id="notifBadge"></span>
+      </div>
+      <button class="tab-btn" id="tabSettingsBtn" onclick="switchTab('settings', event)">⚙️ Settings</button>
+    </div>
+
+    <div class="tab-pane active" id="tp-submit">
+      <div class="form-card">
+        <h3>ส่งคำร้องใหม่</h3>
+        <select class="field" id="sdCat">
+          <option value="ปรึกษาทั่วไป (General)">ปรึกษาทั่วไป (General)</option>
+          <option value="วิชาการ (Academic)">วิชาการ (Academic)</option>
+          <option value="ทุนการศึกษา (Scholarship)">ทุนการศึกษา (Scholarship)</option>
+          <option value="สุขภาพจิต (Mental Health)">สุขภาพจิต (Mental Health)</option>
+          <option value="อื่นๆ (Other)">อื่นๆ (Other)</option>
+        </select>
+        <textarea class="field" id="sdDetail" placeholder="รายละเอียด..."></textarea>
+        <button class="btn-main bg-blue" onclick="submitRequest()">ส่งข้อความ</button>
+        <div class="msg-box" id="sdMsg"></div>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="tp-history">
+      <div id="historyList"><div class="empty-state">Loading...</div></div>
+    </div>
+
+    <div class="tab-pane" id="tp-settings">
+      <div class="form-card">
+        <h3>⚙️ Account Settings</h3>
+        <div class="acct-info-box">
+          <div class="label">👤 Logged in as</div>
+          <div class="name" id="setAccName"></div>
+          <div class="email" id="setAccEmail"></div>
+        </div>
+        <div class="section-title">🔑 Change Password</div>
+        <div class="section-sub">If you logged in using a temporary password, please change it now.</div>
+        <input class="field" type="password" id="cpOld" placeholder="Current / temporary password" autocomplete="current-password">
+        <input class="field" type="password" id="cpNew" placeholder="New password (min 6 characters)" autocomplete="new-password">
+        <input class="field" type="password" id="cpConfirm" placeholder="Confirm new password" autocomplete="new-password">
+        <button class="btn-main bg-purple" onclick="changeMyPassword()">Update Password</button>
+        <div class="msg-box" id="cpMsg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== ADMIN DASHBOARD ====== -->
+<div class="page" id="page-adminDashboard">
+  <div class="admin-page-wrap">
+    <div class="admin-inner">
+      <div class="admin-topbar">
+        <div class="admin-title">🛠️ Admin</div>
+        <div class="admin-topbar-btns">
+          <button class="sm-btn bg-blue" onclick="loadAdminData()">🔄</button>
+          <button class="sm-btn bg-green" onclick="goHome()">🏠</button>
+          <button class="sm-btn bg-gray" onclick="logout()">Logout</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card sc-total"><div class="stat-label">Total</div><div class="stat-val" id="stTotal">0</div></div>
+        <div class="stat-card sc-pending"><div class="stat-label">Pending</div><div class="stat-val" id="stPending">0</div></div>
+        <div class="stat-card sc-completed"><div class="stat-label">Completed</div><div class="stat-val" id="stCompleted">0</div></div>
+        <div class="stat-card sc-rejected"><div class="stat-label">Rejected</div><div class="stat-val" id="stRejected">0</div></div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="applyFilter('all', event)">All</button>
+        <button class="filter-btn" onclick="applyFilter('pending', event)">Pending</button>
+        <button class="filter-btn" onclick="applyFilter('completed', event)">Completed</button>
+        <button class="filter-btn" onclick="applyFilter('rejected', event)">Rejected</button>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-head">
+          <div>Date & Time</div>
+          <div>Student Name</div>
+          <div>Email</div>
+          <div>Category</div>
+          <div>Status</div>
+          <div>Actions</div>
+        </div>
+        <div id="adminTblBody"><div class="tbl-empty">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== MODALS ====== -->
+<div class="overlay" id="m-noAccount">
+  <div class="modal sm">
+    <div class="modal-icon">⚠️</div>
+    <h3>No Account Found</h3>
+    <p>This email is not registered. Please create an account first.</p>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeModal('m-noAccount')">Cancel</button>
+      <button style="background:#667eea;" onclick="goToRegister()">Register Now</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-regSuccess">
+  <div class="modal sm">
+    <div class="modal-icon">✅</div>
+    <h3>Registration Completed!</h3>
+    <p>Your account has been created. You can now sign in.</p>
+    <div class="modal-btns">
+      <button style="background:#667eea;" onclick="goToLoginAfterReg()">Go to Login</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-forgotPass">
+  <div class="modal sm">
+    <div class="modal-icon">🔑</div>
+    <h3>Forgot Password?</h3>
+    <p>Enter your student email and we'll send a temporary password.</p>
+    <input class="field" type="email" id="fpEmail" placeholder="yourname@student.sru.ac.th">
+    <div class="hint" style="text-align:center;">📧 Must use @student.sru.ac.th</div>
+    <div class="msg-box" id="fpMsg"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeForgotModal()">Cancel</button>
+      <button style="background:#667eea;" onclick="submitForgotPassword()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-viewReply">
+  <div class="modal">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+      <div style="font-size:30px;">💬</div>
+      <div>
+        <h3 style="margin:0;">คำตอบจากแอดมิน</h3>
+        <p style="margin:0; font-size:12px; color:#64748b;">Reply from Admin</p>
+      </div>
+    </div>
+    <div id="vrMeta" style="font-size:12px; color:#94a3b8; margin-bottom:6px;"></div>
+    <div id="vrCategory" style="font-weight:700; color:#1e3a8a; font-size:14px; margin-bottom:6px;"></div>
+    <div style="font-weight:700; font-size:13px; color:#374151; margin-top:12px; margin-bottom:6px;">📝 คำร้องของคุณ:</div>
+    <div class="detail-box" id="vrRequest" style="max-height:140px; overflow-y:auto;"></div>
+    <div style="font-weight:700; font-size:13px; color:#374151; margin-top:12px; margin-bottom:6px;">💬 คำตอบ:</div>
+    <div class="detail-box" id="vrReply" style="background:#dbeafe; color:#1e3a8a; max-height:280px; overflow-y:auto; border-color:#93c5fd;"></div>
+    <div class="modal-btns">
+      <button style="background:#667eea;" onclick="closeModal('m-viewReply')">ปิด (Close)</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-manage">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">📋 Request Details</h3>
+    <div id="manageInfo"></div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:700; font-size:14px; color:#374151; margin-bottom:6px;">💬 Reply to student:</div>
+      <textarea class="field" id="manageReplyTxt" placeholder="Type your reply here..." style="min-height:90px; resize:vertical;"></textarea>
+    </div>
+    <div class="manage-msg" id="manageMsg"></div>
+    <div class="action-row">
+      <button style="background:#10b981;" onclick="submitReply()">💬 Send Reply</button>
+      <button style="background:#f59e0b;" onclick="changeStatus('pending')">⏳ Pending</button>
+      <button style="background:#10b981;" onclick="changeStatus('completed')">✅ Done</button>
+      <button style="background:#ef4444;" onclick="changeStatus('rejected')">❌ Reject</button>
+    </div>
+    <div class="modal-btns" style="margin-top:8px;">
+      <button style="background:#ef4444;" onclick="confirmDelete()">🗑️ Delete</button>
+      <button style="background:#6b7280;" onclick="closeModal('m-manage')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-deleteConfirm">
+  <div class="modal sm">
+    <div class="modal-icon">🗑️</div>
+    <h3>Delete Request?</h3>
+    <p>This cannot be undone. Are you sure?</p>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeModal('m-deleteConfirm')">Cancel</button>
+      <button style="background:#ef4444;" onclick="performDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====== GLOBALS ======
+  var currentUser = null;
+  var allRequests = [];
+  var myRequests = [];
+  var currentFilter = 'all';
+  var selectedReq = null;
+
+  // ====== HELPERS ======
+  function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
+  function showMsg(id, text, type) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'msg-box show ' + (type === 'error' ? 'msg-error' : 'msg-success');
+  }
+  function clearMsg(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = '';
+    el.className = 'msg-box';
+  }
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    var div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
+  // ====== PAGE NAVIGATION ======
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    var pg = document.getElementById('page-' + name);
+    if (pg) pg.classList.add('active');
+    if (name === 'adminDashboard') {
+      document.body.style.background = '#f1f5f9';
+      document.body.style.alignItems = 'flex-start';
+      loadAdminData();
+    } else {
+      document.body.style.background = 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)';
+      document.body.style.alignItems = 'center';
+    }
+    if (name === 'studentDashboard') {
+      resetToSubmitTab();
+      setTimeout(checkUnreadReplies, 600);
+    }
+    if (name === 'home') {
+      var n = document.getElementById('homeNotice');
+      if (currentUser) {
+        n.innerHTML = '<div class="logged-notice">✅ Logged in as <b>' + escapeHtml(currentUser.name) + '</b> (' + currentUser.role + ')</div>';
+      } else { n.innerHTML = ''; }
+    }
+    if (name === 'studentLogin') applyRememberStudent();
+    if (name === 'adminLogin') applyRememberAdmin();
+    window.scrollTo(0, 0);
+  }
+
+  function resetToSubmitTab() {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById('tabSubmitBtn').classList.add('active');
+    document.getElementById('tp-submit').classList.add('active');
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // ====== ENTRY HANDLERS ======
+  function handleStudentClick() {
+    if (currentUser && currentUser.role === 'student') showPage('studentDashboard');
+    else showPage('studentLogin');
+  }
+  function handleAdminClick() {
+    if (currentUser && currentUser.role === 'admin') showPage('adminDashboard');
+    else showPage('adminLogin');
+  }
+  function goHome() { showPage('home'); }
+
+  function goToRegister() {
+    closeModal('m-noAccount');
+    var e = document.getElementById('slEmail').value.trim();
+    if (e) document.getElementById('srEmail').value = e;
+    showPage('studentRegister');
+  }
+  function goToLoginAfterReg() {
+    closeModal('m-regSuccess');
+    var e = document.getElementById('srEmail').value;
+    document.getElementById('srName').value = '';
+    document.getElementById('srPass').value = '';
+    document.getElementById('srConfirm').value = '';
+    document.getElementById('srEmail').value = '';
+    if (e) document.getElementById('slEmail').value = e;
+    showPage('studentLogin');
+  }
+
+  function logout() {
+    currentUser = null;
+    allRequests = [];
+    myRequests = [];
+    selectedReq = null;
+    showPage('home');
+  }
+
+  // ====== FORGOT PASSWORD ======
+  function openForgotModal() {
+    var email = document.getElementById('slEmail').value.trim();
+    if (email) document.getElementById('fpEmail').value = email;
+    clearMsg('fpMsg');
+    openModal('m-forgotPass');
+  }
+  function closeForgotModal() {
+    closeModal('m-forgotPass');
+    document.getElementById('fpEmail').value = '';
+    clearMsg('fpMsg');
+  }
+  function submitForgotPassword() {
+    var email = document.getElementById('fpEmail').value.trim();
+    if (!email) { showMsg('fpMsg', 'Please enter your email', 'error'); return; }
+    if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('fpMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
+    showMsg('fpMsg', 'Sending...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          showMsg('fpMsg', '✅ Temporary password sent!', 'success');
+          setTimeout(function() { closeForgotModal(); }, 2500);
+        } else { showMsg('fpMsg', r.message, 'error'); }
+      })
+      .withFailureHandler(function(e) { showMsg('fpMsg', 'Error: ' + e.message, 'error'); })
+      .forgotPassword(email);
+  }
+
+  // ====== REMEMBER ME ======
+  function lsGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+  function lsRemove(k) { try { localStorage.removeItem(k); } catch(e) {} }
+
+  function applyRememberStudent() {
+    if (lsGet('s_rem') === '1') {
+      setVal('slEmail', lsGet('s_email') || '');
+      setVal('slPass', lsGet('s_pass') || '');
+      var cb = document.getElementById('slRemember');
+      if (cb) cb.checked = true;
+    }
+  }
+  function applyRememberAdmin() {
+    if (lsGet('a_rem') === '1') {
+      setVal('alEmail', lsGet('a_email') || '');
+      setVal('alPass', lsGet('a_pass') || '');
+      var cb = document.getElementById('alRemember');
+      if (cb) cb.checked = true;
+    }
+  }
+
+  function initRemember() { applyRememberStudent(); applyRememberAdmin(); }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initRemember);
+  } else { initRemember(); }
+  window.addEventListener('load', initRemember);
+
+  // ====== STUDENT LOGIN / REGISTER ======
+  function studentLogin() {
+    var email = document.getElementById('slEmail').value.trim();
+    var pass = document.getElementById('slPass').value;
+    var rem = document.getElementById('slRemember').checked;
+    if (!email || !pass) { showMsg('slMsg', 'Please fill all fields', 'error'); return; }
+    if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('slMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
+    showMsg('slMsg', 'Logging in...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          if (rem) { lsSet('s_email', email); lsSet('s_pass', pass); lsSet('s_rem', '1'); }
+          else { lsRemove('s_email'); lsRemove('s_pass'); lsRemove('s_rem'); }
+          currentUser = r.user;
+          document.getElementById('sdWelcome').textContent = r.user.name;
+          clearMsg('slMsg');
+          showPage('studentDashboard');
+          setTimeout(checkUnreadReplies, 800);
+        } else {
+          if (r.code === 'NO_ACCOUNT') { clearMsg('slMsg'); openModal('m-noAccount'); }
+          else showMsg('slMsg', r.message, 'error');
+        }
+      })
+      .withFailureHandler(function(e) { showMsg('slMsg', 'Error: ' + e.message, 'error'); })
+      .loginStudent(email, pass);
+  }
+
+  function studentRegister() {
+    var name = document.getElementById('srName').value.trim();
+    var email = document.getElementById('srEmail').value.trim();
+    var pass = document.getElementById('srPass').value;
+    var conf = document.getElementById('srConfirm').value;
+    if (!name || !email || !pass || !conf) { showMsg('srMsg', 'Please fill all fields', 'error'); return; }
+    if (!email.toLowerCase().endsWith('@student.sru.ac.th')) { showMsg('srMsg', 'Email must end with @student.sru.ac.th', 'error'); return; }
+    if (pass.length < 6) { showMsg('srMsg', 'Password must be at least 6 characters', 'error'); return; }
+    if (pass !== conf) { showMsg('srMsg', 'Passwords do not match', 'error'); return; }
+    showMsg('srMsg', 'Creating account...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) { clearMsg('srMsg'); openModal('m-regSuccess'); }
+        else showMsg('srMsg', r.message, 'error');
+      })
+      .withFailureHandler(function(e) { showMsg('srMsg', 'Error: ' + e.message, 'error'); })
+      .registerStudent(email, name, pass);
+  }
+
+  // ====== ADMIN LOGIN ======
+  function adminLogin() {
+    var email = document.getElementById('alEmail').value.trim();
+    var pass = document.getElementById('alPass').value;
+    var rem = document.getElementById('alRemember').checked;
+    if (!email || !pass) { showMsg('alMsg', 'Please fill all fields', 'error'); return; }
+    showMsg('alMsg', 'Logging in...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          if (rem) { lsSet('a_email', email); lsSet('a_pass', pass); lsSet('a_rem', '1'); }
+          else { lsRemove('a_email'); lsRemove('a_pass'); lsRemove('a_rem'); }
+          currentUser = r.user;
+          clearMsg('alMsg');
+          showPage('adminDashboard');
+        } else showMsg('alMsg', r.message, 'error');
+      })
+      .withFailureHandler(function(e) { showMsg('alMsg', 'Error: ' + e.message, 'error'); })
+      .loginAdmin(email, pass);
+  }
+
+  // ====== TABS ======
+  function switchTab(name, ev) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+    if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+    document.getElementById('tp-' + name).classList.add('active');
+    if (name === 'history') { loadHistory(); markAllSeen(); }
+    if (name === 'settings') { loadSettings(); }
+  }
+
+  // ====== SUBMIT REQUEST ======
+  function submitRequest() {
+    var cat = document.getElementById('sdCat').value;
+    var det = document.getElementById('sdDetail').value.trim();
+    if (!det) { showMsg('sdMsg', 'กรุณากรอกรายละเอียด', 'error'); return; }
+    showMsg('sdMsg', 'กำลังส่ง...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          showMsg('sdMsg', '✅ ส่งคำร้องสำเร็จ!', 'success');
+          document.getElementById('sdDetail').value = '';
+          setTimeout(function() { clearMsg('sdMsg'); }, 3000);
+        } else showMsg('sdMsg', r.message, 'error');
+      })
+      .withFailureHandler(function(e) { showMsg('sdMsg', 'Error: ' + e.message, 'error'); })
+      .submitRequest(currentUser.email, cat, det);
+  }
+
+  // ====== HISTORY ======
+  function loadHistory() {
+    document.getElementById('historyList').innerHTML = '<div class="empty-state">Loading...</div>';
+    google.script.run.withSuccessHandler(function(reqs) {
+      myRequests = reqs || [];
+      if (!myRequests.length) {
+        document.getElementById('historyList').innerHTML = '<div class="empty-state">📭 ยังไม่มีคำร้อง</div>';
+        return;
+      }
+      var seenKey = 'seen_' + currentUser.email;
+      var seen = JSON.parse(lsGet(seenKey) || '[]');
+      var html = '';
+      myRequests.forEach(function(r, idx) {
+        var st = (r.status || 'pending').toLowerCase();
+        var stMap = { pending: 'รอตอบกลับ', completed: 'ตอบกลับแล้ว', rejected: 'ปฏิเสธ' };
+        var hasReply = r.reply && String(r.reply).trim() !== '';
+        var isNew = hasReply && seen.indexOf(String(r.id)) === -1;
+        html += '<div class="req-card">'
+          + '<div class="req-meta">' + escapeHtml(r.timestamp) + '</div>'
+          + '<div class="req-cat">' + escapeHtml(r.category) + '</div>'
+          + '<div class="req-detail">' + escapeHtml(r.details) + '</div>'
+          + '<span class="badge badge-' + st + '">' + (stMap[st] || st) + '</span>';
+        if (hasReply) {
+          html += '<div style="margin-top:10px;">'
+            + '<button class="view-reply-btn" onclick="openReplyModal(' + idx + ')">'
+            + '💬 ดูคำตอบ (View Reply)'
+            + (isNew ? '<span class="new-reply-tag">NEW</span>' : '')
+            + '</button></div>';
+        }
+        html += '</div>';
+      });
+      document.getElementById('historyList').innerHTML = html;
+    }).getMyRequests(currentUser.email);
+  }
+
+  function openReplyModal(idx) {
+    var r = myRequests[idx];
+    if (!r) return;
+    var seenKey = 'seen_' + currentUser.email;
+    var seen = JSON.parse(lsGet(seenKey) || '[]');
+    if (seen.indexOf(String(r.id)) === -1) {
+      seen.push(String(r.id));
+      lsSet(seenKey, JSON.stringify(seen));
+    }
+    document.getElementById('vrMeta').textContent = r.timestamp || '';
+    document.getElementById('vrCategory').textContent = r.category || '';
+    document.getElementById('vrRequest').textContent = r.details || '';
+    document.getElementById('vrReply').textContent = r.reply || '';
+    openModal('m-viewReply');
+    updateBadge(0);
+    checkUnreadReplies();
+    loadHistory();
+  }
+
+  // ====== NOTIFICATION BADGE ======
+  function checkUnreadReplies() {
+    if (!currentUser) return;
+    google.script.run.withSuccessHandler(function(reqs) {
+      var seenKey = 'seen_' + currentUser.email;
+      var seen = JSON.parse(lsGet(seenKey) || '[]');
+      var unread = (reqs || []).filter(function(r) {
+        return r.reply && String(r.reply).trim() !== '' && seen.indexOf(String(r.id)) === -1;
+      });
+      updateBadge(unread.length);
+    }).getMyRequests(currentUser.email);
+  }
+
+  function updateBadge(count) {
+    var badge = document.getElementById('notifBadge');
+    if (count > 0) {
+      badge.textContent = count > 9 ? '9+' : count;
+      badge.classList.add('show');
+    } else { badge.classList.remove('show'); }
+  }
+
+  function markAllSeen() {
+    if (!currentUser) return;
+    google.script.run.withSuccessHandler(function(reqs) {
+      var seenKey = 'seen_' + currentUser.email;
+      var seen = JSON.parse(lsGet(seenKey) || '[]');
+      (reqs || []).forEach(function(r) {
+        if (r.reply && String(r.reply).trim() !== '' && seen.indexOf(String(r.id)) === -1) {
+          seen.push(String(r.id));
+        }
+      });
+      lsSet(seenKey, JSON.stringify(seen));
+      updateBadge(0);
+    }).getMyRequests(currentUser.email);
+  }
+
+  // ====== SETTINGS ======
+  function loadSettings() {
+    if (!currentUser) return;
+    document.getElementById('setAccName').textContent = '👤 ' + currentUser.name;
+    document.getElementById('setAccEmail').textContent = '📧 ' + currentUser.email;
+    document.getElementById('cpOld').value = '';
+    document.getElementById('cpNew').value = '';
+    document.getElementById('cpConfirm').value = '';
+    clearMsg('cpMsg');
+  }
+
+  function changeMyPassword() {
+    var oldP = document.getElementById('cpOld').value;
+    var newP = document.getElementById('cpNew').value;
+    var conf = document.getElementById('cpConfirm').value;
+    if (!oldP || !newP || !conf) { showMsg('cpMsg', 'Please fill all fields', 'error'); return; }
+    if (newP.length < 6) { showMsg('cpMsg', 'New password must be at least 6 characters', 'error'); return; }
+    if (newP !== conf) { showMsg('cpMsg', 'New passwords do not match', 'error'); return; }
+    if (oldP === newP) { showMsg('cpMsg', 'New password must be different', 'error'); return; }
+    showMsg('cpMsg', 'Updating...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          showMsg('cpMsg', '✅ ' + r.message, 'success');
+          document.getElementById('cpOld').value = '';
+          document.getElementById('cpNew').value = '';
+          document.getElementById('cpConfirm').value = '';
+          if (lsGet('s_rem') === '1') { lsSet('s_pass', newP); }
+          setTimeout(function() { clearMsg('cpMsg'); }, 4000);
+        } else { showMsg('cpMsg', r.message, 'error'); }
+      })
+      .withFailureHandler(function(e) { showMsg('cpMsg', 'Error: ' + e.message, 'error'); })
+      .changePassword(currentUser.email, oldP, newP);
+  }
+
+  // ====== ADMIN DASHBOARD ======
+  function loadAdminData() {
+    google.script.run.withSuccessHandler(function(s) {
+      document.getElementById('stTotal').textContent = s.total;
+      document.getElementById('stPending').textContent = s.pending;
+      document.getElementById('stCompleted').textContent = s.completed;
+      document.getElementById('stRejected').textContent = s.rejected;
+    }).getStats();
+
+    document.getElementById('adminTblBody').innerHTML = '<div class="tbl-empty">Loading...</div>';
+    google.script.run.withSuccessHandler(function(reqs) {
+      allRequests = reqs || [];
+      renderTable();
+    }).getAllRequests();
+  }
+
+  function applyFilter(f, ev) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+    renderTable();
+  }
+
+  function getFilteredList() {
+    return currentFilter === 'all' ? allRequests : allRequests.filter(function(r) {
+      return (r.status || 'pending').toLowerCase() === currentFilter;
+    });
+  }
+
+  function renderTable() {
+    var list = getFilteredList();
+    var body = document.getElementById('adminTblBody');
+    if (!list.length) { body.innerHTML = '<div class="tbl-empty">No requests found.</div>'; return; }
+    var html = '';
+    list.forEach(function(r, i) {
+      var st = (r.status || 'pending').toLowerCase();
+      html += '<div class="tbl-row">'
+        + '<div class="clip" data-label="Date">' + escapeHtml(r.timestamp) + '</div>'
+        + '<div class="clip" data-label="Name">' + escapeHtml(r.studentName || '-') + '</div>'
+        + '<div class="clip" data-label="Email">' + escapeHtml(r.studentEmail) + '</div>'
+        + '<div class="clip" data-label="Category">' + escapeHtml(r.category) + '</div>'
+        + '<div data-label="Status"><span class="badge badge-' + st + '">' + st + '</span></div>'
+        + '<div data-label="Actions"><button class="view-btn" onclick="openManage(' + i + ')">👁️ View</button></div>'
+        + '</div>';
+    });
+    body.innerHTML = html;
+  }
+
+  // ====== ADMIN MANAGE MODAL ======
+  function openManage(idx) {
+    var list = getFilteredList();
+    selectedReq = list[idx];
+    if (!selectedReq) return;
+    var r = selectedReq;
+    var st = (r.status || 'pending').toLowerCase();
+
+    document.getElementById('manageInfo').innerHTML =
+      '<div class="info-row"><span class="info-lbl">📅 Date</span><span class="info-val">' + escapeHtml(r.timestamp) + '</span></div>'
+      + '<div class="info-row"><span class="info-lbl">👤 Student</span><span class="info-val">' + escapeHtml(r.studentName || '-') + '</span></div>'
+      + '<div class="info-row"><span class="info-lbl">📧 Email</span><span class="info-val">' + escapeHtml(r.studentEmail) + '</span></div>'
+      + '<div class="info-row"><span class="info-lbl">📂 Category</span><span class="info-val">' + escapeHtml(r.category) + '</span></div>'
+      + '<div class="info-row"><span class="info-lbl">📊 Status</span><span class="info-val"><span class="badge badge-' + st + '">' + st + '</span></span></div>'
+      + '<div style="margin-top:10px;font-weight:700;font-size:14px;color:#374151;margin-bottom:6px;">📝 Details:</div>'
+      + '<div class="detail-box">' + escapeHtml(r.details) + '</div>'
+      + (r.reply
+          ? '<div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:6px;">💬 Previous Reply:</div>'
+            + '<div class="detail-box" style="background:#dbeafe; color:#1e3a8a; border-color:#93c5fd;">' + escapeHtml(r.reply) + '</div>'
+          : '');
+
+    document.getElementById('manageReplyTxt').value = r.reply || '';
+    clearManageMsg();
+    openModal('m-manage');
+  }
+
+  function showManageMsg(text, type) {
+    var el = document.getElementById('manageMsg');
+    el.textContent = text;
+    el.className = 'manage-msg show ' + (type === 'error' ? 'msg-error' : 'msg-success');
+  }
+  function clearManageMsg() {
+    var el = document.getElementById('manageMsg');
+    el.textContent = '';
+    el.className = 'manage-msg';
+  }
+
+  function submitReply() {
+    if (!selectedReq) return;
+    var txt = document.getElementById('manageReplyTxt').value.trim();
+    if (!txt) { showManageMsg('Reply cannot be empty', 'error'); return; }
+    showManageMsg('Sending...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          showManageMsg('✅ Reply sent successfully!', 'success');
+          setTimeout(function() { closeModal('m-manage'); loadAdminData(); }, 1200);
+        } else { showManageMsg(r.message || 'Failed', 'error'); }
+      })
+      .withFailureHandler(function(e) { showManageMsg('Error: ' + e.message, 'error'); })
+      .replyToRequest(selectedReq.rowIndex, txt);
+  }
+
+  function changeStatus(newStatus) {
+    if (!selectedReq) return;
+    showManageMsg('Updating...', 'success');
+    google.script.run
+      .withSuccessHandler(function(r) {
+        if (r.success) {
+          showManageMsg('✅ Status updated', 'success');
+          setTimeout(function() { closeModal('m-manage'); loadAdminData(); }, 1000);
+        } else { showManageMsg(r.message || 'Failed', 'error'); }
+      })
+      .withFailureHandler(function(e) { showManageMsg('Error: ' + e.message, 'error'); })
+      .updateRequestStatus(selectedReq.rowIndex, newStatus);
+  }
+
+  function confirmDelete() { if (!selectedReq) return; openModal('m-deleteConfirm'); }
+
+  function performDelete() {
+    if (!selectedReq) { closeModal('m-deleteConfirm'); return; }
+    google.script.run
+      .withSuccessHandler(function(r) {
+        closeModal('m-deleteConfirm');
+        if (r.success) { closeModal('m-manage'); loadAdminData(); }
+        else { showManageMsg(r.message || 'Failed to delete', 'error'); }
+      })
+      .withFailureHandler(function(e) {
+        closeModal('m-deleteConfirm');
+        showManageMsg('Error: ' + e.message, 'error');
+      })
+      .deleteRequest(selectedReq.rowIndex);
+  }
+
+  // ====== Close modal on outside click ======
+  document.querySelectorAll('.overlay').forEach(function(ov) {
+    ov.addEventListener('click', function(e) {
+      if (e.target === ov) ov.classList.remove('open');
+    });
+  });
+</script>
+
 </body>
 </html>
