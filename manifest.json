@@ -1,6 +1,6 @@
 {
-  "name": "SRU Consultation Centre",
-  "short_name": "SRU Centre",
+  "name": "SRU Consultation Center",
+  "short_name": "SRU Center",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
