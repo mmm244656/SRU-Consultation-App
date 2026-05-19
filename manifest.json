@@ -1,7 +1,8 @@
 {
   "name": "SRU Consultation Center",
   "short_name": "SRU Center",
-  "start_url": "/",
+  "start_url": "/SRU-Consultation-App/",
+  "scope": "/SRU-Consultation-App/"
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
