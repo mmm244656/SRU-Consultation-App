@@ -7,12 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SRU Consultation Center">
-<title>SRU Consultation Center</title>
+  <title>SRU Consultation Center</title>
   <link rel="manifest" href="/SRU-Consultation-App/manifest.json">
   <link rel="apple-touch-icon" href="icon-ios.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  <title>SRU Consultation Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -545,7 +544,7 @@
 
     .action-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-top: 12px; }
     @media(min-width: 480px) { .action-grid { grid-template-columns: repeat(4,1fr); } }
-    .action-grid button { padding: 11px 8px; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.12s; }
+    .action-grid button { padding: 11px 8px; border: none; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700; color: white; cursor: pointer; transition: opacity 0.12px; }
     .action-grid button:active { opacity: 0.8; }
 
     .manage-msg { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; display: none; font-weight: 500; }
@@ -934,13 +933,26 @@
   </div>
 </div>
 
-<!-- Reg success -->
+<!-- Reg success (used only for test email / pre-verified accounts) -->
 <div class="overlay" id="m-regSuccess">
   <div class="modal center">
     <div class="modal-drag"></div>
     <div class="modal-icon">🎉</div>
     <h3>Account Created!</h3>
     <p>Your account is ready. Sign in to get started.</p>
+    <div class="modal-btns">
+      <button style="background:var(--accent);color:white;" onclick="goToLoginAfterReg()">Go to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Verify email notice (shown after normal registration) -->
+<div class="overlay" id="m-verifyNotice">
+  <div class="modal center">
+    <div class="modal-drag"></div>
+    <div class="modal-icon">📧</div>
+    <h3>Check Your Email!</h3>
+    <p>We sent a verification link to your <b>@student.sru.ac.th</b> inbox. Click the link to activate your account, then come back to log in.</p>
     <div class="modal-btns">
       <button style="background:var(--accent);color:white;" onclick="goToLoginAfterReg()">Go to Login</button>
     </div>
@@ -1037,12 +1049,12 @@
 ════════════════════════════════════════ -->
 <script>
   // ────────────────────────────────────────
-  //  ⚙️ CONFIG — Replace with your deployed Apps Script URL
+  //  ⚙️ CONFIG
   // ────────────────────────────────────────
   var API_URL = 'https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec';
 
   // ────────────────────────────────────────
-  //  API — GET-based fetch (works cross-origin from GitHub Pages)
+  //  API
   // ────────────────────────────────────────
   function api(action, params, onSuccess, onError) {
     var qs = '';
@@ -1052,7 +1064,6 @@
       }).join('&');
     }
     var url = API_URL + '?action=' + encodeURIComponent(action) + (qs ? '&' + qs : '');
-
     fetch(url, { method: 'GET', redirect: 'follow' })
       .then(function(res) { return res.json(); })
       .then(function(data) { onSuccess(data); })
@@ -1159,6 +1170,7 @@
   }
   function goToLoginAfterReg() {
     closeModal('m-regSuccess');
+    closeModal('m-verifyNotice');
     var e = document.getElementById('srEmail').value;
     ['srName','srPass','srConfirm','srEmail'].forEach(function(id){ setVal(id,''); });
     if (e) setVal('slEmail', e);
@@ -1212,14 +1224,20 @@
         if (rem) { lsSet('s_email',email); lsSet('s_pass',pass); lsSet('s_rem','1'); }
         else { lsRemove('s_email'); lsRemove('s_pass'); lsRemove('s_rem'); }
         currentUser = r.user;
-        document.getElementById('sdWelcome').textContent   = r.user.name;
+        document.getElementById('sdWelcome').textContent      = r.user.name;
         document.getElementById('sdEmailDisplay').textContent = r.user.email;
         clearMsg('slMsg');
         showPage('studentDashboard');
         setTimeout(checkUnreadReplies, 900);
       } else {
-        if (r.code === 'NO_ACCOUNT') { clearMsg('slMsg'); openModal('m-noAccount'); }
-        else showMsg('slMsg', r.message, 'error');
+        // ── NEW: handle NOT_VERIFIED ──
+        if (r.code === 'NOT_VERIFIED') {
+          showMsg('slMsg', '📧 Please verify your email first. Check your @student.sru.ac.th inbox and click the link we sent.', 'error');
+        } else if (r.code === 'NO_ACCOUNT') {
+          clearMsg('slMsg'); openModal('m-noAccount');
+        } else {
+          showMsg('slMsg', r.message, 'error');
+        }
       }
     }, function(e){ showMsg('slMsg','Network error: '+e.message,'error'); });
   }
@@ -1238,8 +1256,18 @@
     if (pass !== conf)   { showMsg('srMsg','Passwords do not match','error'); return; }
     showMsg('srMsg','Creating account…','success');
     api('registerStudent', { email: email, name: name, password: pass }, function(r) {
-      if (r.success) { clearMsg('srMsg'); openModal('m-regSuccess'); }
-      else showMsg('srMsg', r.message, 'error');
+      if (r.success) {
+        clearMsg('srMsg');
+        if (r.needsVerification) {
+          // Normal student — show "check your email" modal
+          openModal('m-verifyNotice');
+        } else {
+          // Test email or pre-verified — show instant success modal
+          openModal('m-regSuccess');
+        }
+      } else {
+        showMsg('srMsg', r.message, 'error');
+      }
     }, function(e){ showMsg('srMsg','Network error: '+e.message,'error'); });
   }
 
@@ -1435,10 +1463,10 @@
     list.forEach(function(r, i) {
       var st = (r.status || 'pending').toLowerCase();
       html += '<div class="tbl-row">'
-        + '<div class="clip" data-label="Date">'     + esc(r.timestamp)   + '</div>'
+        + '<div class="clip" data-label="Date">'     + esc(r.timestamp)        + '</div>'
         + '<div class="clip" data-label="Name">'     + esc(r.studentName||'—') + '</div>'
-        + '<div class="clip" data-label="Email">'    + esc(r.studentEmail) + '</div>'
-        + '<div class="clip" data-label="Category">' + esc(r.category)     + '</div>'
+        + '<div class="clip" data-label="Email">'    + esc(r.studentEmail)      + '</div>'
+        + '<div class="clip" data-label="Category">' + esc(r.category)          + '</div>'
         + '<div data-label="Status"><span class="badge badge-'+st+'">'+st+'</span></div>'
         + '<div data-label="Action"><button class="view-btn" onclick="openManage('+i+')">View</button></div>'
         + '</div>';
@@ -1524,9 +1552,9 @@
     var active = document.querySelector('.page.active');
     if (!active) return;
     var id = active.id;
-    if (id === 'page-studentLogin')   { studentLogin();   }
-    if (id === 'page-studentRegister'){ studentRegister();}
-    if (id === 'page-adminLogin')     { adminLogin();     }
+    if (id === 'page-studentLogin')    { studentLogin();    }
+    if (id === 'page-studentRegister') { studentRegister(); }
+    if (id === 'page-adminLogin')      { adminLogin();      }
   });
 </script>
 </body>
