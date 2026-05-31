@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>SRU Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    :root {
+      --ink:       #0f172a;
+      --ink2:      #334155;
+      --ink3:      #64748b;
+      --ink4:      #94a3b8;
+      --surface:   #ffffff;
+      --surface2:  #f8fafc;
+      --surface3:  #f1f5f9;
+      --border:    #e2e8f0;
+      --border2:   #cbd5e1;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --accent-bg: #eef2ff;
+      --green:     #10b981;
+      --red:       #ef4444;
+      --red-bg:    #fee2e2;
+      --red-txt:   #991b1b;
+      --green-bg:  #d1fae5;
+      --green-txt: #065f46;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.05);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.1),0 8px 24px rgba(0,0,0,0.06);
+      --font: 'Sora', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+    html { overflow-x:hidden; -webkit-text-size-adjust:100%; }
+    body {
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--surface2);
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    input, button { font-family: var(--font); font-size:15px; touch-action:manipulation; }
+    button { cursor:pointer; }
+
+    /* ── HEADER ── */
+    .portal-header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 14px clamp(16px,4vw,40px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top:0; z-index:50;
+      box-shadow: var(--shadow-sm);
+    }
+    .portal-brand { display:flex; align-items:center; gap:10px; }
+    .portal-brand-icon {
+      width:38px; height:38px;
+      background: linear-gradient(135deg,#6366f1,#8b5cf6);
+      border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:20px;
+      box-shadow: 0 3px 10px rgba(99,102,241,0.35);
+    }
+    .portal-brand-name { font-size:15px; font-weight:700; color:var(--ink); }
+    .portal-brand-sub  { font-size:11px; color:var(--ink3); }
+    .header-user {
+      display:flex; align-items:center; gap:10px;
+    }
+    .user-chip {
+      display:flex; align-items:center; gap:8px;
+      background: var(--surface2);
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:6px 14px 6px 6px;
+    }
+    .user-avatar {
+      width:28px; height:28px; border-radius:50%;
+      background: linear-gradient(135deg,#6366f1,#8b5cf6);
+      display:flex; align-items:center; justify-content:center;
+      font-size:13px; color:white; font-weight:700; flex-shrink:0;
+    }
+    .user-name  { font-size:13px; font-weight:600; color:var(--ink); }
+    .user-email { font-size:11px; color:var(--ink3); font-family:var(--mono); }
+    .btn-logout {
+      padding:8px 16px; border:none; border-radius:999px;
+      background:var(--surface3); color:var(--ink2);
+      font-size:13px; font-weight:600;
+      transition:background 0.15s;
+    }
+    .btn-logout:hover { background:var(--border2); }
+
+    /* ── PAGES ── */
+    .page { display:none; }
+    .page.active { display:block; }
+
+    /* ── AUTH WRAPPER ── */
+    .auth-wrap {
+      min-height: calc(100vh - 65px);
+      min-height: calc(100dvh - 65px);
+      display:flex; align-items:center; justify-content:center;
+      padding:24px 16px;
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+    .auth-card {
+      width:100%; max-width:420px;
+      background:white;
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      padding: clamp(24px,6vw,40px) clamp(20px,6vw,36px);
+      box-shadow:var(--shadow-lg);
+      animation: cardIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(20px) scale(0.98)} to{opacity:1;transform:none} }
+
+    .brand-mark { display:flex; align-items:center; gap:10px; margin-bottom:22px; }
+    .brand-icon {
+      width:46px; height:46px;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      border-radius:13px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:24px; flex-shrink:0;
+      box-shadow:0 4px 14px rgba(99,102,241,0.4);
+    }
+    .brand-name { font-size:14px; font-weight:700; color:var(--ink); }
+    .brand-sub  { font-size:11px; color:var(--ink3); }
+
+    .auth-heading { font-size:clamp(20px,5vw,26px); font-weight:700; color:var(--ink); margin-bottom:4px; }
+    .auth-sub     { font-size:13px; color:var(--ink3); margin-bottom:22px; line-height:1.6; }
+
+    .field-wrap  { margin-bottom:10px; }
+    .field-label { display:block; font-size:11px; font-weight:700; color:var(--ink2); margin-bottom:5px; text-transform:uppercase; letter-spacing:.06em; }
+    .field {
+      width:100%; padding:12px 14px;
+      border:1.5px solid var(--border);
+      border-radius:var(--radius-sm);
+      background:var(--surface2);
+      color:var(--ink); font-size:15px !important; font-family:var(--font);
+      transition:border-color .15s, box-shadow .15s, background .15s;
+      line-height:1.4;
+    }
+    .field:focus { outline:none; border-color:var(--accent); background:white; box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
+    .field::placeholder { color:var(--ink4); }
+    .field-hint { font-size:11px; color:var(--ink4); margin-top:4px; font-family:var(--mono); }
+
+    .check-row { display:flex; align-items:center; gap:8px; margin:10px 0; }
+    .check-row input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); flex-shrink:0; }
+    .check-row label { font-size:13px; color:var(--ink2); cursor:pointer; }
+
+    .btn {
+      display:block; width:100%; padding:13px 20px;
+      border:none; border-radius:var(--radius-sm);
+      font-family:var(--font); font-size:14px; font-weight:600;
+      color:white; text-align:center;
+      transition:transform .12s,opacity .12s,box-shadow .12s;
+      cursor:pointer; margin-bottom:8px;
+    }
+    .btn:active { transform:scale(0.98); opacity:.9; }
+    .btn-primary { background:linear-gradient(135deg,#6366f1,#7c3aed); box-shadow:0 4px 14px rgba(99,102,241,0.35); }
+    .btn-primary:hover { box-shadow:0 6px 20px rgba(99,102,241,0.45); }
+    .btn-outline { background:transparent; border:1.5px solid var(--border2); color:var(--ink2); box-shadow:none; }
+    .btn-outline:hover { background:var(--surface3); }
+    .btn-ghost { background:none; border:none; color:var(--accent); font-size:13px; width:100%; padding:8px; margin:2px 0; font-weight:500; cursor:pointer; }
+    .btn-ghost:hover { text-decoration:underline; }
+    .back-link { background:none; border:none; color:var(--ink4); font-size:13px; padding:8px 0; display:block; text-align:center; cursor:pointer; margin-top:4px; }
+    .back-link:hover { color:var(--ink2); }
+
+    .msg { padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; margin-top:10px; display:none; word-break:break-word; font-weight:500; }
+    .msg.show { display:block; }
+    .msg-error   { background:var(--red-bg);   color:var(--red-txt); }
+    .msg-success { background:var(--green-bg); color:var(--green-txt); }
+
+    .divider { border:none; border-top:1px solid var(--border); margin:14px 0; }
+
+    /* ── PORTAL DASHBOARD ── */
+    .portal-body {
+      max-width:900px; margin:0 auto;
+      padding:32px clamp(16px,4vw,40px);
+      padding-bottom: max(32px, env(safe-area-inset-bottom));
+    }
+    .portal-welcome {
+      margin-bottom:28px;
+    }
+    .portal-welcome h2 { font-size:clamp(20px,4vw,26px); font-weight:700; color:var(--ink); margin-bottom:4px; }
+    .portal-welcome p  { font-size:14px; color:var(--ink3); }
+
+    .apps-section-title {
+      font-size:11px; font-weight:800; text-transform:uppercase;
+      letter-spacing:.08em; color:var(--ink3);
+      margin-bottom:14px;
+    }
+
+    .apps-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+      gap:14px;
+      margin-bottom:32px;
+    }
+    @media(max-width:480px) { .apps-grid { grid-template-columns:repeat(3,1fr); gap:10px; } }
+
+    .app-card {
+      background:white;
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+      padding:20px 14px 16px;
+      display:flex; flex-direction:column; align-items:center; gap:10px;
+      text-decoration:none; color:inherit;
+      box-shadow:var(--shadow-sm);
+      transition:transform .15s, box-shadow .15s, border-color .15s;
+      cursor:pointer;
+      position:relative; overflow:hidden;
+    }
+    .app-card::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:3px;
+      background:var(--app-color, var(--accent));
+      border-radius:var(--radius-md) var(--radius-md) 0 0;
+      transform:scaleX(0); transform-origin:left;
+      transition:transform .2s ease;
+    }
+    .app-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--border2); }
+    .app-card:hover::before { transform:scaleX(1); }
+    .app-card:active { transform:scale(0.97); }
+
+    .app-icon {
+      width:52px; height:52px; border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:26px;
+      background:var(--app-bg, var(--accent-bg));
+      flex-shrink:0;
+    }
+    .app-name { font-size:13px; font-weight:600; color:var(--ink); text-align:center; line-height:1.3; }
+    .app-desc { font-size:11px; color:var(--ink3); text-align:center; line-height:1.4; }
+
+    /* app colors */
+    .app-consultation { --app-color:#6366f1; --app-bg:#eef2ff; }
+    .app-gmail        { --app-color:#ea4335; --app-bg:#fef2f2; }
+    .app-classroom    { --app-color:#1a73e8; --app-bg:#dbeafe; }
+    .app-drive        { --app-color:#34a853; --app-bg:#dcfce7; }
+    .app-forms        { --app-color:#7c3aed; --app-bg:#ede9fe; }
+    .app-docs         { --app-color:#1a73e8; --app-bg:#dbeafe; }
+    .app-sheets       { --app-color:#34a853; --app-bg:#dcfce7; }
+
+    /* featured card */
+    .app-card.featured {
+      grid-column: span 2;
+      flex-direction:row; align-items:center;
+      padding:20px;
+      background:linear-gradient(135deg,#eef2ff,#ede9fe);
+      border-color:rgba(99,102,241,0.25);
+    }
+    @media(max-width:480px) { .app-card.featured { grid-column:span 3; } }
+    .app-card.featured .app-icon { width:56px; height:56px; font-size:28px; background:white; box-shadow:var(--shadow-sm); }
+    .app-card.featured .app-text { text-align:left; }
+    .app-card.featured .app-name { font-size:15px; }
+    .app-card.featured .app-desc { font-size:12px; }
+    .app-card.featured .app-arrow { margin-left:auto; font-size:20px; color:var(--ink4); flex-shrink:0; }
+
+    /* ── FOOTER ── */
+    .portal-footer {
+      text-align:center; padding:20px;
+      font-size:12px; color:var(--ink4);
+      border-top:1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="portal-header">
+  <div class="portal-brand">
+    <div class="portal-brand-icon">🎓</div>
+    <div>
+      <div class="portal-brand-name">SRU Portal</div>
+      <div class="portal-brand-sub">วิทยาลัยนานาชาติการท่องเที่ยว</div>
+    </div>
+  </div>
+  <div class="header-user" id="headerUser" style="display:none;">
+    <div class="user-chip">
+      <div class="user-avatar" id="userInitial">?</div>
+      <div>
+        <div class="user-name"  id="userName"></div>
+        <div class="user-email" id="userEmail"></div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<!-- ════════════════ PAGE: LOGIN ════════════════ -->
+<div class="page active" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand-mark">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <div class="brand-name">SRU Student Portal</div>
+          <div class="brand-sub">วิทยาลัยนานาชาติการท่องเที่ยว</div>
+        </div>
+      </div>
+      <h2 class="auth-heading">Welcome Back</h2>
+      <p class="auth-sub">Sign in with your student email to access all university apps.</p>
+
+      <div class="field-wrap">
+        <label class="field-label">Student Email</label>
+        <input class="field" type="email" id="loginEmail" placeholder="yourname@student.sru.ac.th" autocomplete="email">
+        <div class="field-hint">📧 @student.sru.ac.th only</div>
+      </div>
+
+      <div id="passwordSection" style="display:none;">
+        <div class="field-wrap">
+          <label class="field-label">Password</label>
+          <input class="field" type="password" id="loginPass" placeholder="Your password" autocomplete="current-password">
+        </div>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="loginRemember">
+        <label for="loginRemember">Remember me for 7 days</label>
+      </div>
+
+      <button class="btn btn-primary" id="loginMainBtn" onclick="handleLoginBtn()">Continue →</button>
+      <div class="msg" id="loginMsg"></div>
+      <hr class="divider">
+      <p style="font-size:12px;color:var(--ink4);text-align:center;line-height:1.6;">
+        First time? Enter your email and we'll send you a magic link to set up your account.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ PAGE: MAGIC LINK SENT ════════════════ -->
+<div class="page" id="page-magicSent">
+  <div class="auth-wrap">
+    <div class="auth-card" style="text-align:center;">
+      <div style="font-size:52px;margin-bottom:14px;">📬</div>
+      <h2 class="auth-heading">Check Your Email!</h2>
+      <p class="auth-sub">We sent a magic link to<br><b id="magicEmailDisplay" style="color:var(--accent);font-family:var(--mono);font-size:12px;"></b><br><br>Click the link in the email to set your password and access the portal.</p>
+      <p style="font-size:12px;color:var(--ink4);margin-bottom:16px;">ตรวจสอบกล่องจดหมายของคุณ — Check your @student.sru.ac.th inbox.</p>
+      <button class="btn btn-outline" onclick="showPage('login')">← Back to Login</button>
+      <button class="btn-ghost" onclick="resendMagicLink()">Didn't receive it? Resend</button>
+      <div class="msg" id="resendMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ PAGE: SET PASSWORD ════════════════ -->
+<div class="page" id="page-setPassword">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand-mark">
+        <div class="brand-icon">🔑</div>
+        <div>
+          <div class="brand-name">Set Your Password</div>
+          <div class="brand-sub">One time setup</div>
+        </div>
+      </div>
+      <h2 class="auth-heading">Create Password</h2>
+      <p class="auth-sub">Choose a password you'll remember. You'll use this every time you log in.</p>
+
+      <div class="field-wrap">
+        <label class="field-label">New Password</label>
+        <input class="field" type="password" id="spNew" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Confirm Password</label>
+        <input class="field" type="password" id="spConfirm" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+
+      <button class="btn btn-primary" onclick="submitSetPassword()">Set Password & Enter Portal →</button>
+      <div class="msg" id="spMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ PAGE: PORTAL DASHBOARD ════════════════ -->
+<div class="page" id="page-portal">
+  <div class="portal-body">
+    <div class="portal-welcome">
+      <h2>Good <span id="timeGreeting">morning</span>, <span id="portalName">Student</span> 👋</h2>
+      <p>Access your university apps below.</p>
+    </div>
+
+    <div class="apps-section-title">Your Apps</div>
+    <div class="apps-grid">
+
+      <!-- Consultation — featured -->
+      <div class="app-card featured app-consultation" onclick="openConsultation()">
+        <div class="app-icon">🎓</div>
+        <div class="app-text">
+          <div class="app-name">Consultation Center</div>
+          <div class="app-desc">Submit requests & get help from advisors</div>
+        </div>
+        <span class="app-arrow">›</span>
+      </div>
+
+      <!-- Gmail -->
+      <a class="app-card app-gmail" href="https://mail.google.com" target="_blank" rel="noopener">
+        <div class="app-icon">✉️</div>
+        <div class="app-name">Gmail</div>
+        <div class="app-desc">Student email</div>
+      </a>
+
+      <!-- Classroom -->
+      <a class="app-card app-classroom" href="https://classroom.google.com" target="_blank" rel="noopener">
+        <div class="app-icon">🏫</div>
+        <div class="app-name">Classroom</div>
+        <div class="app-desc">Classes & assignments</div>
+      </a>
+
+      <!-- Drive -->
+      <a class="app-card app-drive" href="https://drive.google.com" target="_blank" rel="noopener">
+        <div class="app-icon">📁</div>
+        <div class="app-name">Drive</div>
+        <div class="app-desc">Files & storage</div>
+      </a>
+
+      <!-- Forms -->
+      <a class="app-card app-forms" href="https://forms.google.com" target="_blank" rel="noopener">
+        <div class="app-icon">📋</div>
+        <div class="app-name">Forms</div>
+        <div class="app-desc">Surveys & quizzes</div>
+      </a>
+
+      <!-- Docs -->
+      <a class="app-card app-docs" href="https://docs.google.com" target="_blank" rel="noopener">
+        <div class="app-icon">📄</div>
+        <div class="app-name">Docs</div>
+        <div class="app-desc">Documents</div>
+      </a>
+
+      <!-- Sheets -->
+      <a class="app-card app-sheets" href="https://sheets.google.com" target="_blank" rel="noopener">
+        <div class="app-icon">📊</div>
+        <div class="app-name">Sheets</div>
+        <div class="app-desc">Spreadsheets</div>
+      </a>
+
+    </div>
+  </div>
+  <div class="portal-footer">SRU Portal · วิทยาลัยนานาชาติการท่องเที่ยว · <span id="footerYear"></span></div>
+</div>
+
+<script>
+  // ─────────────────────────────────────────
+  //  CONFIG
+  // ─────────────────────────────────────────
+  var API_URL      = 'https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec';
+  var CONSULT_URL  = 'https://mmm244656.github.io/SRU-Consultation-App/consultation/';
+  var SESSION_DAYS = 7;
+
+  // Special accounts that always use password (no magic link)
+  var PASSWORD_ONLY = ['admin@rex.com', 'test@student.sru.ac.th'];
+
+  // ─────────────────────────────────────────
+  //  STORAGE
+  // ─────────────────────────────────────────
+  var _mem = {};
+  var _lsOk = (function(){ try{ localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return true; }catch(e){ return false; } })();
+  function lsGet(k)    { if(_lsOk){ try{ return localStorage.getItem(k); }catch(e){} } return _mem[k]!==undefined?_mem[k]:null; }
+  function lsSet(k,v)  { if(_lsOk){ try{ localStorage.setItem(k,v); return; }catch(e){} } _mem[k]=v; }
+  function lsRemove(k) { if(_lsOk){ try{ localStorage.removeItem(k); return; }catch(e){} } delete _mem[k]; }
+
+  // ─────────────────────────────────────────
+  //  API
+  // ─────────────────────────────────────────
+  function api(action, params, onSuccess, onError) {
+    var qs = Object.keys(params||{}).map(function(k){
+      return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
+    }).join('&');
+    var url = API_URL+'?action='+encodeURIComponent(action)+(qs?'&'+qs:'');
+    fetch(url,{method:'GET',redirect:'follow'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ onSuccess(d); })
+      .catch(function(e){ if(onError) onError(e); });
+  }
+
+  // ─────────────────────────────────────────
+  //  STATE
+  // ─────────────────────────────────────────
+  var currentUser   = null;
+  var pendingEmail  = '';
+  var magicToken    = '';
+
+  // ─────────────────────────────────────────
+  //  HELPERS
+  // ─────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    document.getElementById('page-'+name).classList.add('active');
+    window.scrollTo(0,0);
+  }
+  function showMsg(id, text, type) {
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = text;
+    el.className = 'msg show '+(type==='error'?'msg-error':'msg-success');
+  }
+  function clearMsg(id) { var el=document.getElementById(id); if(el){ el.textContent=''; el.className='msg'; } }
+  function setVal(id,v) { var el=document.getElementById(id); if(el) el.value=v; }
+
+  function isPasswordOnly(email) {
+    return PASSWORD_ONLY.indexOf(email.toLowerCase().trim()) !== -1;
+  }
+
+  // ─────────────────────────────────────────
+  //  SESSION
+  // ─────────────────────────────────────────
+  function saveSession(user, remember) {
+    var session = { user: user, expires: remember ? Date.now()+(SESSION_DAYS*24*60*60*1000) : null };
+    lsSet('sru_session', JSON.stringify(session));
+  }
+  function loadSession() {
+    try {
+      var raw = lsGet('sru_session');
+      if(!raw) return null;
+      var s = JSON.parse(raw);
+      if(s.expires && Date.now() > s.expires) { lsRemove('sru_session'); return null; }
+      return s.user;
+    } catch(e) { return null; }
+  }
+  function clearSession() { lsRemove('sru_session'); }
+
+  // ─────────────────────────────────────────
+  //  ON LOAD — check session & magic link token
+  // ─────────────────────────────────────────
+  window.addEventListener('load', function() {
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+    // Check for magic link token in URL
+    var params = new URLSearchParams(window.location.search);
+    var token  = params.get('token');
+    if(token) {
+      magicToken = token;
+      // Verify token with backend
+      api('verifyMagicToken', { token: token }, function(r) {
+        if(r.success) {
+          pendingEmail = r.email;
+          showPage('setPassword');
+          // Clean URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          showPage('login');
+          showMsg('loginMsg', '❌ Magic link expired or invalid. Please try again.', 'error');
+        }
+      }, function(){ showPage('login'); showMsg('loginMsg','Network error. Please try again.','error'); });
+      return;
+    }
+
+    // Check existing session
+    var user = loadSession();
+    if(user) {
+      currentUser = user;
+      enterPortal();
+      return;
+    }
+
+    // Apply remembered credentials
+    if(lsGet('sru_remember')==='1') {
+      setVal('loginEmail', lsGet('sru_email')||'');
+      var email = lsGet('sru_email')||'';
+      if(email) {
+        if(isPasswordOnly(email)) {
+          document.getElementById('passwordSection').style.display='block';
+          setVal('loginPass', lsGet('sru_pass')||'');
+          document.getElementById('loginMainBtn').textContent = 'Sign In →';
+        }
+        var cb = document.getElementById('loginRemember');
+        if(cb) cb.checked = true;
+      }
+    }
+
+    showPage('login');
+  });
+
+  // ─────────────────────────────────────────
+  //  EMAIL INPUT — show/hide password field
+  // ─────────────────────────────────────────
+  document.getElementById('loginEmail').addEventListener('input', function() {
+    var email = this.value.trim().toLowerCase();
+    var pwSec = document.getElementById('passwordSection');
+    var btn   = document.getElementById('loginMainBtn');
+    if(isPasswordOnly(email)) {
+      pwSec.style.display = 'block';
+      btn.textContent = 'Sign In →';
+    } else {
+      pwSec.style.display = 'none';
+      btn.textContent = 'Continue →';
+    }
+  });
+
+  // ─────────────────────────────────────────
+  //  LOGIN BUTTON
+  // ─────────────────────────────────────────
+  function handleLoginBtn() {
+    var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    var pass  = document.getElementById('loginPass').value;
+    var rem   = document.getElementById('loginRemember').checked;
+    clearMsg('loginMsg');
+
+    if(!email) { showMsg('loginMsg','Please enter your email','error'); return; }
+
+    // Special password-only accounts
+    if(isPasswordOnly(email)) {
+      if(!pass) { showMsg('loginMsg','Please enter your password','error'); return; }
+      showMsg('loginMsg','Signing in…','success');
+      var action = email === 'admin@rex.com' ? 'loginAdmin' : 'loginStudent';
+      var params = email === 'admin@rex.com'
+        ? { email: email, password: pass }
+        : { email: email, password: pass };
+      api(action, params, function(r) {
+        if(r.success) {
+          if(rem) { lsSet('sru_email',email); lsSet('sru_pass',pass); lsSet('sru_remember','1'); }
+          else    { lsRemove('sru_email'); lsRemove('sru_pass'); lsRemove('sru_remember'); }
+          currentUser = r.user;
+          saveSession(r.user, rem);
+          clearMsg('loginMsg');
+          enterPortal();
+        } else {
+          showMsg('loginMsg', r.message||'Login failed', 'error');
+        }
+      }, function(e){ showMsg('loginMsg','Network error: '+e.message,'error'); });
+      return;
+    }
+
+    // Regular student — validate domain
+    if(!email.endsWith('@student.sru.ac.th')) {
+      showMsg('loginMsg','Email must end with @student.sru.ac.th','error');
+      return;
+    }
+
+    // Check if student already has a password (returning user)
+    showMsg('loginMsg','Checking account…','success');
+    api('checkStudentAccount', { email: email }, function(r) {
+      if(r.hasPassword) {
+        // Show password field
+        document.getElementById('passwordSection').style.display = 'block';
+        document.getElementById('loginMainBtn').textContent = 'Sign In →';
+        clearMsg('loginMsg');
+        // If password already typed, try login
+        var pw = document.getElementById('loginPass').value;
+        if(pw) doStudentLogin(email, pw, rem);
+      } else if(r.exists && !r.hasPassword) {
+        // Account exists but no password yet — resend magic link
+        sendMagicLink(email);
+      } else {
+        // New student — send magic link to register
+        sendMagicLink(email);
+      }
+    }, function(e){ showMsg('loginMsg','Network error: '+e.message,'error'); });
+  }
+
+  function doStudentLogin(email, pass, rem) {
+    showMsg('loginMsg','Signing in…','success');
+    api('loginStudent', { email: email, password: pass }, function(r) {
+      if(r.success) {
+        if(rem) { lsSet('sru_email',email); lsSet('sru_pass',pass); lsSet('sru_remember','1'); }
+        else    { lsRemove('sru_email'); lsRemove('sru_pass'); lsRemove('sru_remember'); }
+        currentUser = r.user;
+        saveSession(r.user, rem);
+        clearMsg('loginMsg');
+        enterPortal();
+      } else {
+        showMsg('loginMsg', r.message||'Login failed', 'error');
+      }
+    }, function(e){ showMsg('loginMsg','Network error: '+e.message,'error'); });
+  }
+
+  // If password section is visible and Enter pressed
+  document.getElementById('loginPass').addEventListener('keydown', function(e) {
+    if(e.key==='Enter') handleLoginBtn();
+  });
+  document.getElementById('loginEmail').addEventListener('keydown', function(e) {
+    if(e.key==='Enter') handleLoginBtn();
+  });
+
+  // ─────────────────────────────────────────
+  //  MAGIC LINK
+  // ─────────────────────────────────────────
+  function sendMagicLink(email) {
+    pendingEmail = email;
+    showMsg('loginMsg','Sending magic link…','success');
+    api('sendMagicLink', { email: email }, function(r) {
+      if(r.success) {
+        clearMsg('loginMsg');
+        document.getElementById('magicEmailDisplay').textContent = email;
+        showPage('magicSent');
+      } else {
+        showMsg('loginMsg', r.message||'Failed to send', 'error');
+      }
+    }, function(e){ showMsg('loginMsg','Network error: '+e.message,'error'); });
+  }
+
+  function resendMagicLink() {
+    if(!pendingEmail) { showPage('login'); return; }
+    showMsg('resendMsg','Resending…','success');
+    api('sendMagicLink', { email: pendingEmail }, function(r) {
+      if(r.success) showMsg('resendMsg','✅ Sent! Check your inbox.','success');
+      else showMsg('resendMsg', r.message||'Failed','error');
+    }, function(e){ showMsg('resendMsg','Network error','error'); });
+  }
+
+  // ─────────────────────────────────────────
+  //  SET PASSWORD
+  // ─────────────────────────────────────────
+  function submitSetPassword() {
+    var pw   = document.getElementById('spNew').value;
+    var conf = document.getElementById('spConfirm').value;
+    if(!pw||!conf)    { showMsg('spMsg','Please fill both fields','error'); return; }
+    if(pw.length < 6) { showMsg('spMsg','Password must be at least 6 characters','error'); return; }
+    if(pw !== conf)   { showMsg('spMsg','Passwords do not match','error'); return; }
+    showMsg('spMsg','Setting password…','success');
+    api('setPasswordFromToken', { token: magicToken, email: pendingEmail, password: pw }, function(r) {
+      if(r.success) {
+        currentUser = r.user;
+        saveSession(r.user, true);
+        // Save to remember me
+        lsSet('sru_email', pendingEmail);
+        lsSet('sru_pass',  pw);
+        lsSet('sru_remember','1');
+        clearMsg('spMsg');
+        enterPortal();
+      } else {
+        showMsg('spMsg', r.message||'Failed', 'error');
+      }
+    }, function(e){ showMsg('spMsg','Network error: '+e.message,'error'); });
+  }
+
+  // ─────────────────────────────────────────
+  //  PORTAL
+  // ─────────────────────────────────────────
+  function enterPortal() {
+    if(!currentUser) return;
+    // Update header
+    document.getElementById('headerUser').style.display = 'flex';
+    document.getElementById('userName').textContent  = currentUser.name;
+    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userInitial').textContent = (currentUser.name||'?')[0].toUpperCase();
+
+    // Welcome message
+    document.getElementById('portalName').textContent = currentUser.name.split(' ')[0];
+    var h = new Date().getHours();
+    document.getElementById('timeGreeting').textContent = h<12?'morning':h<17?'afternoon':'evening';
+
+    showPage('portal');
+  }
+
+  function openConsultation() {
+    if(!currentUser) return;
+    // Pass session to consultation app via sessionStorage
+    try {
+      sessionStorage.setItem('sru_portal_user', JSON.stringify(currentUser));
+    } catch(e){}
+    window.location.href = CONSULT_URL;
+  }
+
+  function logout() {
+    clearSession();
+    lsRemove('sru_remember');
+    lsRemove('sru_email');
+    lsRemove('sru_pass');
+    currentUser = null;
+    document.getElementById('headerUser').style.display = 'none';
+    setVal('loginEmail','');
+    setVal('loginPass','');
+    document.getElementById('passwordSection').style.display='none';
+    document.getElementById('loginMainBtn').textContent='Continue →';
+    showPage('login');
+  }
+</script>
+</body>
+</html>
