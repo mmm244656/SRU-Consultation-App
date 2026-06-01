@@ -7,6 +7,7 @@ const ADMIN_PASSWORD       = 'rex123123';
 const STUDENT_EMAIL_DOMAIN = '@student.sru.ac.th';
 const TEST_EMAIL           = 'test@student.sru.ac.th';
 const TEST_PASSWORD        = 'test123';
+const SCRIPT_URL           = 'https://script.google.com/macros/s/AKfycbwYBwryZsJ-HL1cxsgQj9o3_2C4ETrznHZdrqCJKLtUx2DoBcYGRIrQnUyoSGK1y1leCg/exec';
 
 // ══════════════════════════════════════════════════════
 //  ENTRY POINTS
@@ -155,23 +156,13 @@ function registerStudent(email, name, password) {
   GmailApp.sendEmail(
     email,
     'ยืนยันอีเมลของคุณ - SRU Hub / Verify your email - SRU Hub',
-    'สวัสดี ' + name + ' / Hello ' + name + ',
-
-' +
-    'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลและเริ่มใช้งาน SRU Hub:
-' +
-    'Click the link below to verify your email and start using SRU Hub:
-
-' +
-    verifyUrl + '
-
-' +
-    'หากคุณไม่ได้สมัครสมาชิก กรุณาเพิกเฉยต่ออีเมลนี้
-' +
-    'If you did not register, please ignore this email.
-
-' +
-    'SRU Hub — วิทยาลัยนานาชาติการท่องเที่ยว'
+    'สวัสดี ' + name + ' / Hello ' + name + ',\n\n' +
+    'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลและเริ่มใช้งาน SRU Hub:\n' +
+    'Click the link below to verify your email and start using SRU Hub:\n\n' +
+    verifyUrl + '\n\n' +
+    'หากคุณไม่ได้สมัครสมาชิก กรุณาเพิกเฉยต่ออีเมลนี้\n' +
+    'If you did not register, please ignore this email.\n\n' +
+    'SRU Hub - วิทยาลัยนานาชาติการท่องเที่ยว'
   );
 
   return { success: true };
