@@ -232,6 +232,36 @@
   </div>
 </div>
 
+  <!-- ══ VERIFICATION PENDING PAGE ══ -->
+<div class="page" id="page-verify-pending">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand-mark">
+        <div class="brand-icon">📧</div>
+        <div>
+          <div class="brand-name">Verify Your Email</div>
+          <div class="brand-sub">One more step to activate</div>
+        </div>
+      </div>
+      <h2 class="auth-heading">Check Your Inbox</h2>
+      <p class="auth-sub">We sent a verification link to:</p>
+      <p style="text-align:center; font-weight:600; color:var(--accent); margin:16px 0; font-family:var(--mono); word-break:break-all;" id="verifyEmail"></p>
+      <p class="auth-sub">Click the link in the email to activate your account.</p>
+
+      <div style="background:var(--green-bg); border:1px solid var(--green); border-radius:var(--radius-sm); padding:12px 14px; margin:16px 0; display:none;" id="verifySuccess">
+        <p style="font-size:13px; color:var(--green-txt); margin:0;">✅ <b>Email verified!</b> You can now log in with your credentials.</p>
+      </div>
+
+      <div style="background:var(--accent-bg); border:1px solid var(--accent); border-radius:var(--radius-sm); padding:12px 14px; margin:16px 0;">
+        <p style="font-size:12px; color:var(--ink2); margin:0;"><b>💡 Tip:</b> Check your spam/junk folder if you don't see the email within a minute.</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="resendVerificationEmail()">Resend Verification Email</button>
+      <button class="btn btn-outline" onclick="showPage('login')">Back to Login</button>
+    </div>
+  </div>
+</div>
+  
 <!-- ══ PORTAL PAGE ══ -->
 <div class="page" id="page-portal">
   <div class="portal-body">
