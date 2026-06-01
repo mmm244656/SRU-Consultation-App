@@ -64,6 +64,7 @@ function handleApiRequest(p) {
       case 'loginAdmin':          result = loginAdmin(p.email, p.password);                        break;
       case 'registerStudent':     result = registerStudent(p.email, p.name, p.password);           break;
       case 'verifyEmail':         result = verifyEmail(p.token);                                     break;
+      case 'resendVerification':  result = resendVerification(p.email);                               break;
       case 'changePassword':      result = changePassword(p.email, p.oldPassword, p.newPassword);  break;
       case 'submitRequest':       result = submitRequest(p.studentEmail, p.category, p.details);   break;
       case 'getMyRequests':       result = getMyRequests(p.studentEmail);                          break;
@@ -181,6 +182,35 @@ function verifyEmail(token) {
     }
   }
   return { success: false, message: 'Token not found or already used.' };
+}
+
+// ── RESEND VERIFICATION ──
+function resendVerification(email) {
+  email = email.toLowerCase().trim();
+  if (!isValidStudentEmail(email)) return { success: false, message: 'Invalid email' };
+
+  var sheet = getUsersSheet();
+  var data  = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().toLowerCase() === email) {
+      var verified = data[i][5] ? data[i][5].toString().trim() : '';
+      if (verified === 'verified') return { success: false, message: 'Email already verified. Please login.' };
+      // Generate new token
+      var token = Utilities.getUuid();
+      sheet.getRange(i + 1, 6).setValue(token);
+      var verifyUrl = SCRIPT_URL + '?action=verifyEmail&token=' + token;
+      GmailApp.sendEmail(
+        email,
+        'ยืนยันอีเมลของคุณ (ส่งใหม่) - SRU Hub / Verify your email (resent) - SRU Hub',
+        'สวัสดี ' + data[i][1] + ' / Hello ' + data[i][1] + ',\n\n' +
+        'นี่คืออีเมลยืนยันใหม่ของคุณ / Here is your new verification link:\n\n' +
+        verifyUrl + '\n\n' +
+        'SRU Hub - วิทยาลัยนานาชาติการท่องเที่ยว'
+      );
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'No account found with this email.' };
 }
 
 // ── LOGIN STUDENT ──
