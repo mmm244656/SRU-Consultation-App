@@ -92,6 +92,49 @@ function jsonOut(obj) {
 }
 
 // ══════════════════════════════════════════════════════
+//  EMAIL SENDER (improved version)
+// ══════════════════════════════════════════════════════
+function sendVerificationEmail(email, name, token) {
+  try {
+    var verifyUrl = SCRIPT_URL + '?token=' + encodeURIComponent(token);
+    
+    var subject = 'ยืนยันอีเมลของคุณ - ศูนย์ให้คำปรึกษา SRU';
+    
+    var message = 'สวัสดี ' + name + ',\n\n' +
+      'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:\n\n' +
+      verifyUrl + '\n\n' +
+      'หลังจากยืนยันแล้ว คุณสามารถเข้าสู่ระบบได้ทันที\n\n' +
+      'ลิงก์นี้จะหมดอายุใน 7 วัน\n\n' +
+      '---\n' +
+      'ศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)';
+    
+    MailApp.sendEmail(email, subject, message);
+    
+    // Log email sent
+    logEmail(email, subject, 'sent');
+    
+    return { success: true, message: 'Email sent successfully' };
+  } catch(err) {
+    logEmail(email, 'Verification Email', 'failed: ' + err.message);
+    return { success: false, message: 'Failed to send email: ' + err.message };
+  }
+}
+
+function logEmail(recipient, subject, status) {
+  try {
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ss.getSheetByName('EmailLog');
+    if (!sheet) {
+      sheet = ss.insertSheet('EmailLog');
+      sheet.appendRow(['Timestamp', 'Recipient', 'Subject', 'Status']);
+    }
+    sheet.appendRow([new Date(), recipient, subject, status]);
+  } catch(e) {
+    // Silent fail - don't break the main flow
+  }
+}
+
+// ══════════════════════════════════════════════════════
 //  SHEET HELPERS
 // ══════════════════════════════════════════════════════
 function getUsersSheet() {
@@ -159,23 +202,20 @@ function registerStudent(email, name, password) {
   if (isTestEmail) {
     // Auto-verified — no email sent
     sheet.appendRow([email, name, 'student', password, new Date(), 'verified']);
-    return { success: true, needsVerification: false };
+    return { success: true, needsVerification: false, message: 'Account created and auto-verified (test account)' };
   } else {
     // Generate a unique token and send verification email
     var token = Utilities.getUuid();
     sheet.appendRow([email, name, 'student', password, new Date(), token]);
 
-    var verifyUrl = SCRIPT_URL + '?token=' + token;
-    GmailApp.sendEmail(
-      email,
-      'ยืนยันอีเมลของคุณ - ศูนย์ให้คำปรึกษา SRU',
-      'สวัสดี ' + name + ',\n\n' +
-      'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:\n\n' +
-      verifyUrl + '\n\n' +
-      'หลังจากยืนยันแล้ว คุณสามารถเข้าสู่ระบบได้ทันที\n\n' +
-      'ศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)'
-    );
-    return { success: true, needsVerification: true };
+    // Send verification email
+    var emailResult = sendVerificationEmail(email, name, token);
+    
+    if (emailResult.success) {
+      return { success: true, needsVerification: true, message: 'Account created. Verification email sent.' };
+    } else {
+      return { success: true, needsVerification: true, message: 'Account created. Please check your email for verification link.' };
+    }
   }
 }
 
@@ -188,6 +228,7 @@ function verifyEmail(token) {
     var stored = data[i][5] ? data[i][5].toString() : '';
     if (stored === token) {
       sheet.getRange(i + 1, 6).setValue('verified');
+      logEmail(data[i][0], 'Verification', 'completed');
       return { success: true, message: 'Email verified! You can now log in.' };
     }
   }
@@ -227,22 +268,16 @@ function resendVerificationEmail(email) {
         return { success: false, message: 'Email is already verified. Please log in.' };
       }
       
-      // Generate new token and send email
-      var token = Utilities.getUuid();
-      sheet.getRange(i + 1, 6).setValue(token);
+      // If no token exists, generate one
+      var token = verifyStatus || Utilities.getUuid();
+      if (!verifyStatus) {
+        sheet.getRange(i + 1, 6).setValue(token);
+      }
       
-      var verifyUrl = SCRIPT_URL + '?token=' + token;
-      GmailApp.sendEmail(
-        email,
-        'ยืนยันอีเมลของคุณ - ศูนย์ให้คำปรึกษา SRU',
-        'สวัสดี ' + data[i][1] + ',\n\n' +
-        'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:\n\n' +
-        verifyUrl + '\n\n' +
-        'หลังจากยืนยันแล้ว คุณสามารถเข้าสู่ระบบได้ทันที\n\n' +
-        'ศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)'
-      );
+      // Send verification email
+      var emailResult = sendVerificationEmail(email, data[i][1], token);
       
-      return { success: true, message: 'Verification email sent' };
+      return emailResult;
     }
   }
   
@@ -268,6 +303,7 @@ function loginStudent(email, password) {
         return { success: false, code: 'NOT_VERIFIED', message: 'Please verify your email first. Check your @student.sru.ac.th inbox.' };
       }
 
+      logEmail(email, 'Login', 'success');
       return { success: true, user: { email: data[i][0], name: data[i][1], role: 'student' } };
     }
   }
@@ -294,12 +330,19 @@ function forgotPassword(email) {
       var tempPass = '';
       for (var j = 0; j < 8; j++) tempPass += chars.charAt(Math.floor(Math.random() * chars.length));
       sheet.getRange(i + 1, 4).setValue(tempPass);
-      GmailApp.sendEmail(
-        email,
-        'รหัสผ่านชั่วคราว - ศูนย์ให้คำปรึกษา SRU',
-        'สวัสดี ' + data[i][1] + ',\n\nรหัสผ่านชั่วคราวของคุณคือ: ' + tempPass +
-        '\n\nกรุณาเข้าสู่ระบบและเปลี่ยนรหัสผ่านในหน้า Settings\n\nศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)'
-      );
+      
+      try {
+        MailApp.sendEmail(
+          email,
+          'รหัสผ่านชั่วคราว - ศูนย์ให้คำปรึกษา SRU',
+          'สวัสดี ' + data[i][1] + ',\n\nรหัสผ่านชั่วคราวของคุณคือ: ' + tempPass +
+          '\n\nกรุณาเข้าสู่ระบบและเปลี่ยนรหัสผ่านในหน้า Settings\n\nศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)'
+        );
+        logEmail(email, 'Password Reset', 'sent');
+      } catch(e) {
+        logEmail(email, 'Password Reset', 'failed');
+      }
+      
       return { success: true, message: 'Temporary password sent to your email!' };
     }
   }
