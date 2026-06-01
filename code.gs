@@ -54,6 +54,10 @@ function handleApiRequest(p) {
         result = registerStudent(p.email, p.name, p.password); break;
       case 'verifyEmail':
         result = verifyEmail(p.token); break;
+      case 'checkEmailVerified':
+        result = checkEmailVerified(p.email); break;
+      case 'resendVerificationEmail':
+        result = resendVerificationEmail(p.email); break;
       case 'forgotPassword':
         result = forgotPassword(p.email); break;
       case 'changePassword':
@@ -161,7 +165,7 @@ function registerStudent(email, name, password) {
     var token = Utilities.getUuid();
     sheet.appendRow([email, name, 'student', password, new Date(), token]);
 
-    var verifyUrl = SCRIPT_URL + '?action=verifyEmail&token=' + token;
+    var verifyUrl = SCRIPT_URL + '?token=' + token;
     GmailApp.sendEmail(
       email,
       'ยืนยันอีเมลของคุณ - ศูนย์ให้คำปรึกษา SRU',
@@ -188,6 +192,61 @@ function verifyEmail(token) {
     }
   }
   return { success: false, message: 'Token not found or already used.' };
+}
+
+function checkEmailVerified(email) {
+  email = email.toLowerCase().trim();
+  
+  var sheet = getUsersSheet();
+  var data  = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().toLowerCase() === email && data[i][2] === 'student') {
+      var verifyStatus = data[i][5] ? data[i][5].toString().trim() : '';
+      return { verified: verifyStatus === 'verified' };
+    }
+  }
+  
+  return { verified: false };
+}
+
+function resendVerificationEmail(email) {
+  email = email.toLowerCase().trim();
+  if (!isValidStudentEmail(email))
+    return { success: false, message: 'Invalid student email' };
+
+  var sheet = getUsersSheet();
+  var data  = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().toLowerCase() === email && data[i][2] === 'student') {
+      var verifyStatus = data[i][5] ? data[i][5].toString().trim() : '';
+      
+      // If already verified, no need to resend
+      if (verifyStatus === 'verified') {
+        return { success: false, message: 'Email is already verified. Please log in.' };
+      }
+      
+      // Generate new token and send email
+      var token = Utilities.getUuid();
+      sheet.getRange(i + 1, 6).setValue(token);
+      
+      var verifyUrl = SCRIPT_URL + '?token=' + token;
+      GmailApp.sendEmail(
+        email,
+        'ยืนยันอีเมลของคุณ - ศูนย์ให้คำปรึกษา SRU',
+        'สวัสดี ' + data[i][1] + ',\n\n' +
+        'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:\n\n' +
+        verifyUrl + '\n\n' +
+        'หลังจากยืนยันแล้ว คุณสามารถเข้าสู่ระบบได้ทันที\n\n' +
+        'ศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)'
+      );
+      
+      return { success: true, message: 'Verification email sent' };
+    }
+  }
+  
+  return { success: false, message: 'Account not found' };
 }
 
 function loginStudent(email, password) {
