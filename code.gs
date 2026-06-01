@@ -7,7 +7,6 @@ const ADMIN_PASSWORD       = 'rex123123';
 const STUDENT_EMAIL_DOMAIN = '@student.sru.ac.th';
 const SCRIPT_URL           = 'https://script.google.com/macros/s/AKfycbzaaxPomO468u6N2uCo7AUUiyzfKzBRsTkCx39nHTdpLRS_1cZxV93ZVOC5B6ONNOQY/exec';
 const TEST_EMAIL           = 'test@student.sru.ac.th';
-const SENDER_EMAIL         = 'noreply@sru.ac.th'; // Change this to your SRU email
 
 // ══════════════════════════════════════════════════════
 //  ENTRY POINTS
@@ -19,10 +18,10 @@ function doGet(e) {
   }
   // Handle verification link clicked directly in browser
   if (e && e.parameter && e.parameter.token) {
-    var result = verifyEmail(e.parameter.token);
+    var result = verifyEmailFromLink(e.parameter.token);
     var html = result.success
-      ? '<h2 style="font-family:sans-serif;color:green;margin:40px 20px;">✅ Email Verified!</h2><p style="font-family:sans-serif;margin:20px;">Your account is now active. You can close this tab and log in.</p>'
-      : '<h2 style="font-family:sans-serif;color:red;margin:40px 20px;">❌ Verification Failed</h2><p style="font-family:sans-serif;margin:20px;">' + result.message + '</p>';
+      ? '<html><head><style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f0f9ff;}</style></head><body><div style="background:white;padding:40px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);text-align:center;max-width:400px;"><h2 style="color:green;margin:0 0 10px 0;">✅ Email Verified!</h2><p style="color:#666;margin:0;">Your account is now active. You can close this tab and log in.</p></div></body></html>'
+      : '<html><head><style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fef2f2;}</style></head><body><div style="background:white;padding:40px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);text-align:center;max-width:400px;"><h2 style="color:red;margin:0 0 10px 0;">❌ Verification Failed</h2><p style="color:#666;margin:0;">' + result.message + '</p></div></body></html>';
     return HtmlService.createHtmlOutput(html);
   }
   return ContentService
@@ -53,8 +52,6 @@ function handleApiRequest(p) {
         result = loginAdmin(p.email, p.password); break;
       case 'registerStudent':
         result = registerStudent(p.email, p.name, p.password); break;
-      case 'verifyEmail':
-        result = verifyEmail(p.token); break;
       case 'checkEmailVerified':
         result = checkEmailVerified(p.email); break;
       case 'resendVerificationEmail':
@@ -93,59 +90,62 @@ function jsonOut(obj) {
 }
 
 // ══════════════════════════════════════════════════════
-//  EMAIL SENDER (with proper error handling)
+//  PENDING REGISTRATIONS SHEET
+// ══════════════════════════════════════════════════════
+function getPendingSheet() {
+  var ss    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('PendingRegistrations');
+  if (!sheet) {
+    sheet = ss.insertSheet('PendingRegistrations');
+    sheet.appendRow(['email', 'name', 'password', 'token', 'created_at', 'expires_at']);
+  }
+  return sheet;
+}
+
+// ══════════════════════════════════════════════════════
+//  EMAIL SENDER
 // ══════════════════════════════════════════════════════
 function sendVerificationEmail(email, name, token) {
   try {
     var verifyUrl = SCRIPT_URL + '?token=' + encodeURIComponent(token);
     
-    var subject = 'ยืนยันอีเมลของคุณ - ศูนย์ให้คำปรึกษา SRU';
+    var subject = 'ยืนยันอีเมลของคุณ - SRU Student Hub';
     
-    var htmlBody = '<div style="font-family:Arial,sans-serif;padding:20px;">' +
+    var htmlBody = '<div style="font-family:Arial,sans-serif;padding:20px;max-width:600px;">' +
       '<h2 style="color:#333;">สวัสดี ' + name + '</h2>' +
-      '<p>กรุณากดปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>' +
-      '<p><a href="' + verifyUrl + '" style="background:#6366f1;color:white;padding:12px 24px;text-decoration:none;border-radius:5px;display:inline-block;">ยืนยันอีเมล</a></p>' +
-      '<p>หรือคัดลอกลิงก์นี้ลงในเบราว์เซอร์:</p>' +
-      '<p style="word-break:break-all;"><code>' + verifyUrl + '</code></p>' +
-      '<p style="color:#666;font-size:12px;">ลิงก์นี้จะหมดอายุใน 7 วัน</p>' +
-      '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">' +
-      '<p style="color:#999;font-size:12px;">ศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)</p>' +
+      '<p style="font-size:16px;">ขอบคุณที่สมัครสมาชิก SRU Student Hub</p>' +
+      '<p style="font-size:16px;">กรุณากดปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>' +
+      '<p style="margin:30px 0;"><a href="' + verifyUrl + '" style="background:#6366f1;color:white;padding:14px 32px;text-decoration:none;border-radius:6px;display:inline-block;font-weight:bold;font-size:16px;">ยืนยันอีเมล</a></p>' +
+      '<p style="color:#666;">หรือคัดลอกลิงก์นี้ลงในเบราว์เซอร์:</p>' +
+      '<p style="word-break:break-all;background:#f5f5f5;padding:10px;border-radius:4px;"><code style="font-size:12px;">' + verifyUrl + '</code></p>' +
+      '<p style="color:#999;font-size:12px;margin-top:30px;">⏱️ ลิงก์นี้จะหมดอายุใน 24 ชั่วโมง</p>' +
+      '<p style="color:#999;font-size:12px;">หากคุณไม่ได้สมัครสมาชิก โปรดเพิกเฉยต่อข้อความนี้</p>' +
+      '<hr style="border:none;border-top:1px solid #ddd;margin:30px 0;">' +
+      '<p style="color:#999;font-size:11px;">SRU Student Hub | วิทยาลัยนานาชาติการท่องเที่ยว</p>' +
       '</div>';
     
     var textBody = 'สวัสดี ' + name + ',\n\n' +
+      'ขอบคุณที่สมัครสมาชิก SRU Student Hub\n\n' +
       'กรุณากดลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:\n\n' +
       verifyUrl + '\n\n' +
-      'หลังจากยืนยันแล้ว คุณสามารถเข้าสู่ระบบได้ทันที\n\n' +
-      'ลิงก์นี้จะหมดอายุใน 7 วัน\n\n' +
+      'ลิงก์นี้จะหมดอายุใน 24 ชั่วโมง\n\n' +
+      'หากคุณไม่ได้สมัครสมาชิก โปรดเพิกเฉยต่อข้อความนี้\n\n' +
       '---\n' +
-      'ศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)';
+      'SRU Student Hub\n' +
+      'วิทยาลัยนานาชาติการท่องเที่ยว';
     
-    // Send email with both HTML and text
     GmailApp.sendEmail(email, subject, textBody, {
       htmlBody: htmlBody,
-      name: 'SRU Student Hub'
+      name: 'SRU Student Hub',
+      noReply: true
     });
     
-    logEmail(email, subject, 'SUCCESS');
-    return { success: true, message: 'Email sent successfully' };
+    Logger.log('Email sent to: ' + email);
+    return { success: true };
     
   } catch(err) {
-    logEmail(email, 'Verification Email', 'FAILED: ' + err.toString());
-    return { success: false, message: 'Email sending failed. Please try again later. Error: ' + err.toString() };
-  }
-}
-
-function logEmail(recipient, subject, status) {
-  try {
-    var ss = SpreadsheetApp.openById(SHEET_ID);
-    var sheet = ss.getSheetByName('EmailLog');
-    if (!sheet) {
-      sheet = ss.insertSheet('EmailLog');
-      sheet.appendRow(['Timestamp', 'Recipient', 'Subject', 'Status']);
-    }
-    sheet.appendRow([new Date(), recipient, subject, status]);
-  } catch(e) {
-    // Silent fail
+    Logger.log('Email error: ' + err.toString());
+    return { success: false, error: err.toString() };
   }
 }
 
@@ -157,7 +157,7 @@ function getUsersSheet() {
   var sheet = ss.getSheetByName('Users');
   if (!sheet) {
     sheet = ss.insertSheet('Users');
-    sheet.appendRow(['email', 'name', 'role', 'password', 'created_at', 'verified', 'token_created_at']);
+    sheet.appendRow(['email', 'name', 'role', 'password', 'created_at', 'verified']);
   }
   return sheet;
 }
@@ -203,64 +203,104 @@ function registerStudent(email, name, password) {
   if (password.length < 6)
     return { success: false, message: 'Password must be at least 6 characters' };
 
-  var sheet = getUsersSheet();
-  var data  = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][0].toString().toLowerCase() === email)
+  var usersData = getUsersSheet().getDataRange().getValues();
+  for (var i = 1; i < usersData.length; i++) {
+    if (usersData[i][0] && usersData[i][0].toString().toLowerCase() === email) {
       return { success: false, message: 'Email already registered' };
+    }
   }
 
-  // Test email skips verification
+  // Check pending registrations
+  var pendingData = getPendingSheet().getDataRange().getValues();
+  for (var i = 1; i < pendingData.length; i++) {
+    if (pendingData[i][0] && pendingData[i][0].toString().toLowerCase() === email) {
+      return { success: false, message: 'This email is already awaiting verification. Please check your inbox.' };
+    }
+  }
+
+  // Test email - auto verify
   if (email === TEST_EMAIL) {
-    sheet.appendRow([email, name, 'student', password, new Date(), 'verified', '']);
-    return { success: true, needsVerification: false };
+    getUsersSheet().appendRow([email, name, 'student', password, new Date(), 'verified']);
+    return { success: true, autoVerified: true };
   }
 
-  // For all other emails, REQUIRE email to send
+  // Generate token and save to pending
   var token = Utilities.getUuid();
+  var expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  getPendingSheet().appendRow([email, name, password, token, new Date(), expiresAt]);
+
+  // Send email
   var emailResult = sendVerificationEmail(email, name, token);
 
   if (!emailResult.success) {
-    // Email failed - don't create account
-    return { success: false, message: 'Failed to send verification email: ' + emailResult.message + ' Please try again.' };
+    // Delete the pending entry if email failed
+    var pendingSheet = getPendingSheet();
+    var allData = pendingSheet.getDataRange().getValues();
+    for (var i = 1; i < allData.length; i++) {
+      if (allData[i][0] && allData[i][0].toString().toLowerCase() === email) {
+        pendingSheet.deleteRow(i + 1);
+        break;
+      }
+    }
+    return { success: false, message: 'Failed to send verification email. Please try again.' };
   }
 
-  // Email sent successfully - create account with token
-  sheet.appendRow([email, name, 'student', password, new Date(), token, new Date()]);
-  return { success: true, needsVerification: true };
+  return { success: true, emailSent: true, message: 'Registration successful! Check your email for verification link.' };
 }
 
-function verifyEmail(token) {
+function verifyEmailFromLink(token) {
   if (!token) return { success: false, message: 'Invalid verification link.' };
 
-  var sheet = getUsersSheet();
-  var data  = sheet.getDataRange().getValues();
-  
-  for (var i = 1; i < data.length; i++) {
-    var stored = data[i][5] ? data[i][5].toString() : '';
-    if (stored === token) {
-      sheet.getRange(i + 1, 6).setValue('verified');
-      logEmail(data[i][0], 'Email Verification', 'COMPLETED');
-      return { success: true, message: 'Email verified! You can now log in.' };
+  var pendingSheet = getPendingSheet();
+  var pendingData = pendingSheet.getDataRange().getValues();
+
+  for (var i = 1; i < pendingData.length; i++) {
+    var storedToken = pendingData[i][3] ? pendingData[i][3].toString() : '';
+    var expiresAt = pendingData[i][5];
+
+    if (storedToken === token) {
+      // Check if token expired
+      if (new Date() > new Date(expiresAt)) {
+        return { success: false, message: 'Verification link has expired. Please register again.' };
+      }
+
+      // Move from pending to users
+      var email = pendingData[i][0];
+      var name = pendingData[i][1];
+      var password = pendingData[i][2];
+
+      // Add to Users sheet
+      getUsersSheet().appendRow([email, name, 'student', password, new Date(), 'verified']);
+
+      // Delete from pending
+      pendingSheet.deleteRow(i + 1);
+
+      return { success: true, message: 'Email verified! Your account is now active.' };
     }
   }
+
   return { success: false, message: 'Token not found or already used.' };
 }
 
 function checkEmailVerified(email) {
   email = email.toLowerCase().trim();
   
-  var sheet = getUsersSheet();
-  var data  = sheet.getDataRange().getValues();
-  
+  var data = getUsersSheet().getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] && data[i][0].toString().toLowerCase() === email && data[i][2] === 'student') {
-      var verifyStatus = data[i][5] ? data[i][5].toString().trim() : '';
-      return { verified: verifyStatus === 'verified' };
+      return { verified: true };
+    }
+  }
+
+  // Check if still pending
+  var pendingData = getPendingSheet().getDataRange().getValues();
+  for (var i = 1; i < pendingData.length; i++) {
+    if (pendingData[i][0] && pendingData[i][0].toString().toLowerCase() === email) {
+      return { verified: false, pending: true };
     }
   }
   
-  return { verified: false };
+  return { verified: false, pending: false };
 }
 
 function resendVerificationEmail(email) {
@@ -268,32 +308,34 @@ function resendVerificationEmail(email) {
   if (!isValidStudentEmail(email))
     return { success: false, message: 'Invalid student email' };
 
-  var sheet = getUsersSheet();
-  var data  = sheet.getDataRange().getValues();
-  
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][0].toString().toLowerCase() === email && data[i][2] === 'student') {
-      var verifyStatus = data[i][5] ? data[i][5].toString().trim() : '';
-      
-      // If already verified, no need to resend
-      if (verifyStatus === 'verified') {
-        return { success: false, message: 'Email is already verified. Please log in.' };
-      }
-      
-      // If no token exists, generate new one
-      var token = verifyStatus && verifyStatus !== '' ? verifyStatus : Utilities.getUuid();
-      if (!verifyStatus || verifyStatus === '') {
-        sheet.getRange(i + 1, 6).setValue(token);
-        sheet.getRange(i + 1, 7).setValue(new Date());
-      }
-      
+  var pendingSheet = getPendingSheet();
+  var pendingData = pendingSheet.getDataRange().getValues();
+
+  for (var i = 1; i < pendingData.length; i++) {
+    if (pendingData[i][0] && pendingData[i][0].toString().toLowerCase() === email) {
+      var token = pendingData[i][3];
+      var name = pendingData[i][1];
+
       // Send verification email
-      var emailResult = sendVerificationEmail(email, data[i][1], token);
-      return emailResult;
+      var emailResult = sendVerificationEmail(email, name, token);
+
+      if (!emailResult.success) {
+        return { success: false, message: 'Failed to send email. Please try again later.' };
+      }
+
+      return { success: true, message: 'Verification email sent successfully!' };
     }
   }
-  
-  return { success: false, message: 'Account not found' };
+
+  // Check if already verified
+  var usersData = getUsersSheet().getDataRange().getValues();
+  for (var i = 1; i < usersData.length; i++) {
+    if (usersData[i][0] && usersData[i][0].toString().toLowerCase() === email && usersData[i][5] === 'verified') {
+      return { success: false, message: 'Email is already verified. Please log in.' };
+    }
+  }
+
+  return { success: false, message: 'Email not found in pending registrations.' };
 }
 
 function loginStudent(email, password) {
@@ -308,15 +350,11 @@ function loginStudent(email, password) {
       if (data[i][3].toString() !== password.toString())
         return { success: false, code: 'WRONG_PASSWORD', message: 'Incorrect password' };
 
-      // Check verification status (column F = index 5)
       var verifyStatus = data[i][5] ? data[i][5].toString().trim() : '';
-      
-      // ONLY allow login if verified
       if (verifyStatus !== 'verified') {
         return { success: false, code: 'NOT_VERIFIED', message: 'Please verify your email first. Check your @student.sru.ac.th inbox.' };
       }
 
-      logEmail(email, 'Login', 'SUCCESS');
       return { success: true, user: { email: data[i][0], name: data[i][1], role: 'student' } };
     }
   }
@@ -347,13 +385,12 @@ function forgotPassword(email) {
       try {
         GmailApp.sendEmail(
           email,
-          'รหัสผ่านชั่วคราว - ศูนย์ให้คำปรึกษา SRU',
+          'รหัสผ่านชั่วคราว - SRU Student Hub',
           'สวัสดี ' + data[i][1] + ',\n\nรหัสผ่านชั่วคราวของคุณคือ: ' + tempPass +
-          '\n\nกรุณาเข้าสู่ระบบและเปลี่ยนรหัสผ่านในหน้า Settings\n\nศูนย์ให้คำปรึกษา วิทยาลัยนานาชาติการท่องเที่ยว (SRU)'
+          '\n\nกรุณาเข้าสู่ระบบและเปลี่ยนรหัสผ่านในหน้า Settings\n\nSRU Student Hub'
         );
-        logEmail(email, 'Password Reset', 'SUCCESS');
       } catch(e) {
-        logEmail(email, 'Password Reset', 'FAILED: ' + e.toString());
+        Logger.log('Password reset email failed: ' + e.toString());
       }
       
       return { success: true, message: 'Temporary password sent to your email!' };
