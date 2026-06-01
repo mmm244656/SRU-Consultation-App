@@ -82,7 +82,6 @@
 
     .btn { display:block; width:100%; padding:13px 20px; border:none; border-radius:var(--radius-sm); font-family:var(--font); font-size:14px; font-weight:600; color:white; text-align:center; transition:transform .12s,opacity .12s,box-shadow .12s; cursor:pointer; margin-bottom:8px; }
     .btn:active { transform:scale(0.98); opacity:.9; }
-    .btn:disabled { opacity:0.6; cursor:not-allowed; }
     .btn-primary { background:linear-gradient(135deg,#6366f1,#7c3aed); box-shadow:0 4px 14px rgba(99,102,241,0.35); }
     .btn-primary:hover { box-shadow:0 6px 20px rgba(99,102,241,0.45); }
     .btn-outline { background:transparent; border:1.5px solid var(--border2); color:var(--ink2); box-shadow:none; }
@@ -133,13 +132,6 @@
     .app-card.featured .app-arrow { margin-left:auto; font-size:20px; color:var(--ink4); flex-shrink:0; }
 
     .portal-footer { text-align:center; padding:20px; font-size:12px; color:var(--ink4); border-top:1px solid var(--border); }
-
-    /* VERIFY BOX */
-    .verify-box { background:var(--green-bg); border:1px solid var(--green); border-radius:var(--radius-sm); padding:12px 14px; margin:16px 0; }
-    .verify-box p { font-size:13px; color:var(--green-txt); margin:0; font-weight:500; }
-    .verify-info { background:var(--accent-bg); border:1px solid var(--accent); border-radius:var(--radius-sm); padding:12px 14px; margin:16px 0; }
-    .verify-info p { font-size:12px; color:var(--ink2); margin:0; }
-    .verify-email { text-align:center; font-weight:600; color:var(--accent); margin:16px 0; font-family:var(--mono); word-break:break-all; }
   </style>
 </head>
 <body>
@@ -240,32 +232,16 @@
   </div>
 </div>
 
-<!-- ══ VERIFICATION PENDING PAGE ══ -->
-<div class="page" id="page-verify-pending">
+<!-- ══ VERIFY PAGE ══ -->
+<div class="page" id="page-verify">
   <div class="auth-wrap">
-    <div class="auth-card">
-      <div class="brand-mark">
-        <div class="brand-icon">📧</div>
-        <div>
-          <div class="brand-name">Verify Your Email</div>
-          <div class="brand-sub">One more step to activate</div>
-        </div>
-      </div>
-      <h2 class="auth-heading">Check Your Inbox</h2>
-      <p class="auth-sub">We sent a verification link to:</p>
-      <p class="verify-email" id="verifyEmail"></p>
-      <p class="auth-sub">Click the link in the email to activate your account.</p>
-
-      <div class="verify-box" id="verifySuccess" style="display:none;">
-        <p>✅ <b>Email verified!</b> You can now log in with your credentials.</p>
-      </div>
-
-      <div class="verify-info">
-        <p><b>💡 Tip:</b> Check your spam/junk folder if you don't see the email within a minute.</p>
-      </div>
-
-      <button class="btn btn-primary" id="resendBtn" onclick="resendVerificationEmail()">Resend Verification Email</button>
-      <button class="btn btn-outline" onclick="showPage('login')">Back to Login</button>
+    <div class="auth-card" style="text-align:center;">
+      <div style="font-size:52px;margin-bottom:14px;">📬</div>
+      <h2 class="auth-heading">Check Your Email!</h2>
+      <p class="auth-sub">We sent a verification link to<br><b id="verifyEmailDisplay" style="color:var(--accent);font-family:var(--mono);font-size:12px;"></b><br><br>Click the link in the email to activate your account.</p>
+      <p style="font-size:12px;color:var(--ink4);margin-bottom:16px;">ตรวจสอบกล่องจดหมายของคุณ — Check your @student.sru.ac.th inbox.</p>
+      <button class="btn btn-outline" onclick="showPage('login')">← Back to Login</button>
+      <div class="msg" id="verifyMsg"></div>
     </div>
   </div>
 </div>
@@ -352,7 +328,6 @@
 
   // ── STATE ──
   var currentUser = null;
-  var verificationCheckInterval = null;
 
   // ── HELPERS ──
   function showPage(name) {
@@ -402,9 +377,6 @@
     if(user) { currentUser = user; enterPortal(); return; }
 
     showPage('login');
-    
-    // Start verification check
-    startVerificationCheck();
   });
 
   // ── LOGIN ──
@@ -428,16 +400,6 @@
         saveSession(r.user, rem);
         clearMsg('loginMsg');
         enterPortal();
-      } else if(r.code === 'NOT_VERIFIED') {
-        // Show verification pending page
-        lsSet('sru_verify_email', email);
-        document.getElementById('verifyEmail').textContent = email;
-        showMsg('loginMsg', '⚠️ ' + r.message, 'error');
-        setTimeout(function() {
-          clearMsg('loginMsg');
-          showPage('verify-pending');
-          startVerificationCheck();
-        }, 1500);
       } else {
         showMsg('loginMsg', r.message||'Login failed', 'error');
       }
@@ -458,81 +420,20 @@
     if(pass !== conf)   { showMsg('regMsg','Passwords do not match','error'); return; }
 
     showMsg('regMsg','Creating account…','success');
-    
     api('registerStudent', { email: email, name: name, password: pass }, function(r) {
-      clearMsg('regMsg');
-      
       if(r.success) {
-        // Store email for verification pending page
-        lsSet('sru_verify_email', email);
-        document.getElementById('verifyEmail').textContent = email;
-        document.getElementById('verifySuccess').style.display = 'none';
-        
-        // Show verification pending page
-        showPage('verify-pending');
-        startVerificationCheck();
+        // Show verify email page
+        document.getElementById('verifyEmailDisplay').textContent = email;
+        showPage('verify');
       } else {
-        showMsg('regMsg', r.message || 'Registration failed', 'error');
+        showMsg('regMsg', r.message||'Registration failed', 'error');
       }
     }, function(e){ showMsg('regMsg','Network error: '+e.message,'error'); });
-  }
-
-  // ── VERIFICATION ──
-  function startVerificationCheck() {
-    var email = lsGet('sru_verify_email');
-    if(!email) return;
-    
-    // Clear any existing interval
-    if(verificationCheckInterval) clearInterval(verificationCheckInterval);
-    
-    // Check every 3 seconds if user is on verify page
-    verificationCheckInterval = setInterval(function() {
-      var activePage = document.querySelector('.page.active');
-      if(activePage && activePage.id === 'page-verify-pending') {
-        api('checkEmailVerified', { email: email }, function(r) {
-          if(r.verified) {
-            document.getElementById('verifySuccess').style.display = 'block';
-            clearInterval(verificationCheckInterval);
-            setTimeout(function() {
-              showPage('login');
-            }, 2000);
-          }
-        }, function(e){ /* silent fail */ });
-      } else {
-        // Stop checking if not on verify page
-        clearInterval(verificationCheckInterval);
-      }
-    }, 3000);
-  }
-
-  function resendVerificationEmail() {
-    var email = lsGet('sru_verify_email');
-    if(!email) { alert('Error: Email not found. Please register again.'); return; }
-    
-    var btn = document.getElementById('resendBtn');
-    btn.disabled = true;
-    btn.textContent = 'Sending…';
-    
-    api('resendVerificationEmail', { email: email }, function(r) {
-      btn.disabled = false;
-      btn.textContent = 'Resend Verification Email';
-      
-      if(r.success) {
-        alert('✅ Verification email sent to ' + email);
-      } else {
-        alert('❌ ' + (r.message || 'Failed to resend email'));
-      }
-    }, function(e) {
-      btn.disabled = false;
-      btn.textContent = 'Resend Verification Email';
-      alert('❌ Network error: ' + e.message);
-    });
   }
 
   // ── PORTAL ──
   function enterPortal() {
     if(!currentUser) return;
-    if(verificationCheckInterval) clearInterval(verificationCheckInterval);
     document.getElementById('headerUser').style.display = 'flex';
     document.getElementById('userName').textContent    = currentUser.name;
     document.getElementById('userEmail').textContent   = currentUser.email;
@@ -556,7 +457,6 @@
 
   function logout() {
     clearSession();
-    if(verificationCheckInterval) clearInterval(verificationCheckInterval);
     lsRemove('sru_remember'); lsRemove('sru_email'); lsRemove('sru_pass');
     currentUser = null;
     document.getElementById('headerUser').style.display = 'none';
