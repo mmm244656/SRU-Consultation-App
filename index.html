@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>SRU Hub</title>
+  <link rel="manifest" href="/SRU-Consultation-App/manifest.json">
+  <link rel="apple-touch-icon" href="/SRU-Consultation-App/icon-ios.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -461,6 +463,12 @@
     if(active.id === 'page-login')    handleLogin();
     if(active.id === 'page-register') handleRegister();
   });
+
+  // ── SERVICE WORKER (required for PWA install prompt) ──
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/SRU-Consultation-App/sw.js')
+      .catch(function(e){ console.log('SW:', e); });
+  }
 </script>
 </body>
 </html>
