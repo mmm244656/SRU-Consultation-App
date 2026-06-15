@@ -165,6 +165,7 @@
       <div class="msg" id="loginMsg"></div>
       <hr class="divider">
       <button class="btn-ghost" onclick="showPage('register')">Don't have an account? <b>Register here</b></button>
+      <button class="btn-ghost" onclick="showPage('forgotPassword')" style="color:var(--ink3);">Forgot your password?</button>
     </div>
   </div>
 </div>
@@ -218,6 +219,68 @@
       <button class="btn btn-outline" onclick="showPage('login')">← Back to Login</button>
       <button class="btn-ghost" onclick="resendVerification()">Didn't receive it? Resend Email</button>
       <div class="msg" id="verifyMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD -->
+<div class="page" id="page-forgotPassword">
+  <div class="auth-wrap">
+    <div class="auth-card" style="text-align:center;">
+      <div style="font-size:52px;margin-bottom:14px;">🔑</div>
+      <h2 class="auth-heading">Forgot Password?</h2>
+      <p class="auth-sub">Enter your university email and we'll send you a link to reset your password.</p>
+      <div class="field-wrap" style="text-align:left;">
+        <label class="field-label">Email</label>
+        <input class="field" type="email" id="fpEmail" placeholder="yourname@student.sru.ac.th" autocomplete="email">
+        <div class="field-hint">📧 @student.sru.ac.th or @sru.ac.th</div>
+      </div>
+      <button class="btn btn-primary" onclick="submitForgotPassword()">Send Reset Link →</button>
+      <div class="msg" id="fpMsg"></div>
+      <hr class="divider">
+      <button class="btn-ghost" onclick="showPage('login')">← Back to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD SENT -->
+<div class="page" id="page-resetSent">
+  <div class="auth-wrap">
+    <div class="auth-card" style="text-align:center;">
+      <div style="font-size:52px;margin-bottom:14px;">📬</div>
+      <h2 class="auth-heading">Check Your Email!</h2>
+      <p class="auth-sub">We sent a password reset link to<br><b id="resetEmailDisplay" style="color:var(--accent);font-family:var(--mono);font-size:12px;"></b><br><br>Click the link to set your new password.</p>
+      <p style="font-size:12px;color:var(--ink4);margin-bottom:16px;">ตรวจสอบกล่องจดหมายของคุณ — Check your inbox.</p>
+      <button class="btn btn-outline" onclick="showPage('login')">← Back to Login</button>
+      <button class="btn-ghost" onclick="resendResetLink()">Didn't receive it? Resend</button>
+      <div class="msg" id="resetSentMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SET NEW PASSWORD (from reset link) -->
+<div class="page" id="page-resetPassword">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand-mark">
+        <div class="brand-icon">🔐</div>
+        <div>
+          <div class="brand-name">Set New Password</div>
+          <div class="brand-sub">Choose a password you'll remember</div>
+        </div>
+      </div>
+      <h2 class="auth-heading">New Password</h2>
+      <p class="auth-sub">Enter your new password below.</p>
+      <div class="field-wrap">
+        <label class="field-label">New Password</label>
+        <input class="field" type="password" id="rpNew" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <div class="field-wrap">
+        <label class="field-label">Confirm Password</label>
+        <input class="field" type="password" id="rpConfirm" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+      <button class="btn btn-primary" onclick="submitResetPassword()">Set Password & Login →</button>
+      <div class="msg" id="rpMsg"></div>
     </div>
   </div>
 </div>
@@ -333,6 +396,16 @@
   window.addEventListener('load', function() {
     document.getElementById('footerYear').textContent = new Date().getFullYear();
 
+    // Check for password reset token in URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var resetToken = urlParams.get('resetToken');
+    if(resetToken) {
+      resetPasswordToken = resetToken;
+      showPage('resetPassword');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
     if(lsGet('sru_remember')==='1') {
       setVal('loginEmail', lsGet('sru_email')||'');
       setVal('loginPass',  lsGet('sru_pass')||'');
@@ -406,6 +479,63 @@
       if(r.success) showMsg('verifyMsg','✅ Verification email resent! Check your inbox.','success');
       else showMsg('verifyMsg', r.message||'Failed to resend','error');
     }, function(e){ showMsg('verifyMsg','Network error: '+e.message,'error'); });
+  }
+
+  // ── RESET PASSWORD VARS ──
+  var lastResetEmail = '';
+  var resetPasswordToken = '';
+
+  // ── FORGOT PASSWORD ──
+  function submitForgotPassword() {
+    var email = document.getElementById('fpEmail').value.trim().toLowerCase();
+    clearMsg('fpMsg');
+    if(!email) { showMsg('fpMsg','Please enter your email','error'); return; }
+    if(!email.endsWith('@student.sru.ac.th') && !email.endsWith('@sru.ac.th')) {
+      showMsg('fpMsg','Email must end with @student.sru.ac.th or @sru.ac.th','error'); return;
+    }
+    showMsg('fpMsg','Sending reset link…','success');
+    api('sendPasswordReset', { email: email }, function(r) {
+      if(r.success) {
+        lastResetEmail = email;
+        lsSet('sru_last_reset_email', email);
+        document.getElementById('resetEmailDisplay').textContent = email;
+        showPage('resetSent');
+      } else {
+        showMsg('fpMsg', r.message||'Failed to send', 'error');
+      }
+    }, function(e){ showMsg('fpMsg','Network error: '+e.message,'error'); });
+  }
+
+  function resendResetLink() {
+    var email = lastResetEmail || lsGet('sru_last_reset_email') || '';
+    if(!email) { showPage('forgotPassword'); return; }
+    showMsg('resetSentMsg','Resending…','success');
+    api('sendPasswordReset', { email: email }, function(r) {
+      if(r.success) showMsg('resetSentMsg','✅ Reset link resent! Check your inbox.','success');
+      else showMsg('resetSentMsg', r.message||'Failed','error');
+    }, function(e){ showMsg('resetSentMsg','Network error: '+e.message,'error'); });
+  }
+
+  function submitResetPassword() {
+    var pw   = document.getElementById('rpNew').value;
+    var conf = document.getElementById('rpConfirm').value;
+    clearMsg('rpMsg');
+    if(!pw||!conf)    { showMsg('rpMsg','Please fill both fields','error'); return; }
+    if(pw.length < 6) { showMsg('rpMsg','Password must be at least 6 characters','error'); return; }
+    if(pw !== conf)   { showMsg('rpMsg','Passwords do not match','error'); return; }
+    showMsg('rpMsg','Updating password…','success');
+    api('resetPasswordFromToken', { token: resetPasswordToken, password: pw }, function(r) {
+      if(r.success) {
+        showMsg('rpMsg','✅ Password updated! Redirecting to login…','success');
+        resetPasswordToken = '';
+        setTimeout(function(){
+          setVal('rpNew',''); setVal('rpConfirm','');
+          showPage('login');
+        }, 1500);
+      } else {
+        showMsg('rpMsg', r.message||'Failed', 'error');
+      }
+    }, function(e){ showMsg('rpMsg','Network error: '+e.message,'error'); });
   }
 
   function enterPortal() {
