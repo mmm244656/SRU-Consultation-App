@@ -8,7 +8,6 @@ const STUDENT_DOMAIN       = '@student.sru.ac.th';
 const PROFESSOR_DOMAIN     = '@sru.ac.th';
 const TEST_EMAIL           = 'test@student.sru.ac.th';
 const TEST_PASSWORD        = 'teststudent';
-const RESET_TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
 const SCRIPT_URL           = 'https://script.google.com/macros/s/AKfycbwYBwryZsJ-HL1cxsgQj9o3_2C4ETrznHZdrqCJKLtUx2DoBcYGRIrQnUyoSGK1y1leCg/exec';
 
 // ══════════════════════════════════════════════════════
@@ -66,8 +65,6 @@ function handleApiRequest(p) {
       case 'registerStudent':     result = registerStudent(p.email, p.name, p.password);          break;
       case 'verifyEmail':         result = verifyEmail(p.token);                                  break;
       case 'resendVerification':  result = resendVerification(p.email);                           break;
-      case 'sendPasswordReset':   result = sendPasswordReset(p.email);                             break;
-      case 'resetPasswordFromToken': result = resetPasswordFromToken(p.token, p.password);         break;
       case 'changePassword':      result = changePassword(p.email, p.oldPassword, p.newPassword); break;
       case 'submitRequest':       result = submitRequest(p.studentEmail, p.category, p.details);  break;
       case 'getMyRequests':       result = getMyRequests(p.studentEmail);                         break;
@@ -97,7 +94,7 @@ function getUsersSheet() {
   var sheet = ss.getSheetByName('Users');
   if (!sheet) {
     sheet = ss.insertSheet('Users');
-    sheet.appendRow(['email','name','role','password','created_at','verified','reset_token','reset_expires']);
+    sheet.appendRow(['email','name','role','password','created_at','verified']);
   }
   return sheet;
 }
@@ -293,81 +290,6 @@ function changePassword(email, oldPassword, newPassword) {
     }
   }
   return { success: false, message: 'Account not found' };
-}
-
-// ══════════════════════════════════════════════════════
-//  SEND PASSWORD RESET
-// ══════════════════════════════════════════════════════
-function sendPasswordReset(email) {
-  email = email.toLowerCase().trim();
-  if (!isValidEmail(email)) return { success: false, message: 'Invalid email domain' };
-  if (email === TEST_EMAIL)  return { success: false, message: 'This account uses a fixed password.' };
-
-  var sheet = getUsersSheet();
-  var data  = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][0].toString().toLowerCase() === email) {
-      var verified = data[i][5] ? data[i][5].toString().trim() : '';
-      if (verified !== 'verified') return { success: false, message: 'Please verify your email first before resetting password.' };
-
-      var token   = Utilities.getUuid();
-      var expires = Date.now() + RESET_TOKEN_EXPIRY_MS;
-      sheet.getRange(i + 1, 7).setValue(token);
-      sheet.getRange(i + 1, 8).setValue(expires);
-
-      var resetUrl = 'https://mmm244656.github.io/SRU-Consultation-App/?resetToken=' + token;
-      GmailApp.sendEmail(
-        email,
-        'รีเซ็ตรหัสผ่าน - SRU Hub / Password Reset - SRU Hub',
-        'สวัสดี ' + data[i][1] + ' / Hello ' + data[i][1] + ',
-
-' +
-        'กรุณากดลิงก์ด้านล่างเพื่อตั้งรหัสผ่านใหม่:
-' +
-        'Click the link below to set your new password:
-
-' +
-        resetUrl + '
-
-' +
-        '⏰ ลิงก์นี้จะหมดอายุใน 30 นาที / This link expires in 30 minutes.
-
-' +
-        'หากคุณไม่ได้ขอรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลนี้
-' +
-        'If you did not request this, please ignore this email.
-
-' +
-        'SRU Hub - วิทยาลัยนานาชาติการท่องเที่ยว'
-      );
-      return { success: true };
-    }
-  }
-  return { success: false, message: 'No account found with this email.' };
-}
-
-// ══════════════════════════════════════════════════════
-//  RESET PASSWORD FROM TOKEN
-// ══════════════════════════════════════════════════════
-function resetPasswordFromToken(token, password) {
-  if (!token || !password) return { success: false, message: 'Missing required fields' };
-  if (password.length < 6)  return { success: false, message: 'Password must be at least 6 characters' };
-
-  var sheet = getUsersSheet();
-  var data  = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    var storedToken   = data[i][6] ? data[i][6].toString() : '';
-    var storedExpires = data[i][7] ? Number(data[i][7]) : 0;
-    if (storedToken === token) {
-      if (Date.now() > storedExpires) return { success: false, message: 'Reset link has expired. Please request a new one.' };
-      // Update password and clear token
-      sheet.getRange(i + 1, 4).setValue(password);
-      sheet.getRange(i + 1, 7).setValue('');
-      sheet.getRange(i + 1, 8).setValue('');
-      return { success: true };
-    }
-  }
-  return { success: false, message: 'Invalid or already used reset link.' };
 }
 
 // ══════════════════════════════════════════════════════
