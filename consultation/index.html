@@ -50,12 +50,17 @@
     .sd-name  { font-size:15px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .sd-email { font-size:11px; color:rgba(255,255,255,.55); font-family:var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .sd-header-btns { display:flex; gap:6px; flex-shrink:0; }
-    .tabs-bar { display:flex; padding:12px 16px 0; background:var(--surface); border-bottom:1px solid var(--border); gap:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
-    .tabs-bar::-webkit-scrollbar { display:none; }
-    .tab-wrap { position:relative; flex-shrink:0; }
-    .tab-btn { padding:10px 16px; border:none; background:none; font-family:var(--font); font-size:13px; font-weight:600; color:var(--ink3); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .15s,border-color .15s; }
+    .tabs-bar { display:flex; padding:12px 16px 0; background:var(--surface); border-bottom:1px solid var(--border); gap:0; }
+    .tab-wrap { position:relative; flex:1; }
+    .tab-btn { width:100%; padding:10px 6px; border:none; background:none; font-family:var(--font); font-size:11px; font-weight:600; color:var(--ink3); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .15s,border-color .15s; text-align:center; }
+    @media(min-width:400px) { .tab-btn { font-size:12px; padding:10px 8px; } }
+    @media(min-width:520px) { .tab-btn { font-size:13px; padding:10px 16px; } }
     .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
     .tab-btn:hover:not(.active) { color:var(--ink2); }
+    /* Non-wrapped tabs also take equal space */
+    .tabs-bar > .tab-btn { flex:1; font-size:11px; padding:10px 6px; }
+    @media(min-width:400px) { .tabs-bar > .tab-btn { font-size:12px; padding:10px 8px; } }
+    @media(min-width:520px) { .tabs-bar > .tab-btn { font-size:13px; padding:10px 16px; } }
     .notif-count { position:absolute; top:5px; right:2px; min-width:17px; height:17px; border-radius:999px; background:var(--red); color:white; font-size:10px; font-weight:800; display:none; align-items:center; justify-content:center; padding:0 4px; border:2px solid var(--surface); }
     .notif-count.show { display:flex; }
     .tab-pane { display:none; padding:20px; }
