@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>SRU Consultation Centre</title>
+  <title>SRU Consultation Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
       --amber:#f59e0b; --amber-bg:#fef3c7; --amber-txt:#92400e;
       --red:#ef4444; --red-bg:#fee2e2; --red-txt:#991b1b;
       --blue:#3b82f6; --blue-bg:#dbeafe; --blue-txt:#1e40af;
+      --purple:#8b5cf6; --purple-bg:#ede9fe; --purple-txt:#5b21b6;
       --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
       --shadow-sm:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.05);
       --shadow-md:0 4px 16px rgba(0,0,0,0.08),0 2px 6px rgba(0,0,0,0.05);
@@ -30,25 +31,17 @@
     body { font-family:var(--font); font-size:15px; color:var(--ink); background:#0f172a; min-height:100vh; min-height:100dvh; overflow-x:hidden; }
     input,textarea,select,button { font-family:var(--font); font-size:15px; touch-action:manipulation; }
     button { cursor:pointer; }
-
     .bg-canvas { position:fixed; inset:0; z-index:0; background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%); overflow:hidden; }
     .bg-canvas::before { content:''; position:absolute; inset:-50%; background:radial-gradient(ellipse 60% 40% at 20% 30%,rgba(99,102,241,.15) 0%,transparent 70%),radial-gradient(ellipse 50% 50% at 80% 70%,rgba(139,92,246,.12) 0%,transparent 70%),radial-gradient(ellipse 40% 60% at 60% 20%,rgba(59,130,246,.08) 0%,transparent 70%); animation:bgShift 20s ease-in-out infinite alternate; }
     @keyframes bgShift { 0%{transform:translate(0,0) rotate(0deg)} 100%{transform:translate(2%,2%) rotate(2deg)} }
     .bg-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(99,102,241,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.04) 1px,transparent 1px); background-size:48px 48px; }
-
     .app-root { position:relative; z-index:1; min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:16px; padding-bottom:max(16px,env(safe-area-inset-bottom)); padding-left:max(16px,env(safe-area-inset-left)); padding-right:max(16px,env(safe-area-inset-right)); }
     .app-root.admin-mode { align-items:flex-start; padding:0; }
-
     .page { display:none; width:100%; }
     .page.active { display:block; }
-
     .glass-card { background:rgba(255,255,255,0.97); border:1px solid rgba(255,255,255,0.5); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
-
-    /* NOT LOGGED IN */
     .notloggedin-card { width:100%; max-width:380px; margin:0 auto; padding:clamp(24px,6vw,40px) clamp(20px,6vw,36px); text-align:center; animation:cardIn .4s cubic-bezier(0.22,1,0.36,1) both; }
     @keyframes cardIn { from{opacity:0;transform:translateY(24px) scale(0.98)} to{opacity:1;transform:none} }
-
-    /* STUDENT DASHBOARD */
     .sd-outer { background:var(--surface2); min-height:100vh; min-height:100dvh; width:100%; display:flex; align-items:flex-start; justify-content:center; padding:20px 16px; padding-bottom:max(20px,env(safe-area-inset-bottom)); }
     .sd-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); width:100%; max-width:580px; overflow:hidden; }
     .sd-header { background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%); padding:20px 22px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -57,22 +50,18 @@
     .sd-name  { font-size:15px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .sd-email { font-size:11px; color:rgba(255,255,255,.55); font-family:var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .sd-header-btns { display:flex; gap:6px; flex-shrink:0; }
-
-    .tabs-bar { display:flex; padding:12px 16px 0; background:var(--surface); border-bottom:1px solid var(--border); gap:0; }
-    .tab-wrap { position:relative; }
+    .tabs-bar { display:flex; padding:12px 16px 0; background:var(--surface); border-bottom:1px solid var(--border); gap:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .tabs-bar::-webkit-scrollbar { display:none; }
+    .tab-wrap { position:relative; flex-shrink:0; }
     .tab-btn { padding:10px 16px; border:none; background:none; font-family:var(--font); font-size:13px; font-weight:600; color:var(--ink3); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .15s,border-color .15s; }
     .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
     .tab-btn:hover:not(.active) { color:var(--ink2); }
-
     .notif-count { position:absolute; top:5px; right:2px; min-width:17px; height:17px; border-radius:999px; background:var(--red); color:white; font-size:10px; font-weight:800; display:none; align-items:center; justify-content:center; padding:0 4px; border:2px solid var(--surface); }
     .notif-count.show { display:flex; }
-
     .tab-pane { display:none; padding:20px; }
     .tab-pane.active { display:block; }
-
     .inner-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px; }
     .inner-card h3 { font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:14px; text-transform:uppercase; letter-spacing:.06em; }
-
     .field-wrap { margin-bottom:10px; }
     .field-label { display:block; font-size:12px; font-weight:600; color:var(--ink2); margin-bottom:5px; text-transform:uppercase; letter-spacing:.05em; }
     .field { width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--surface2); color:var(--ink); font-size:15px !important; font-family:var(--font); transition:border-color .15s,box-shadow .15s,background .15s; line-height:1.4; }
@@ -80,23 +69,21 @@
     .field::placeholder { color:var(--ink4); }
     textarea.field { min-height:110px; resize:vertical; }
     select.field { -webkit-appearance:none; -moz-appearance:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5l5-5' stroke='%236366f1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; background-size:12px 8px; background-color:var(--surface2); padding-right:38px !important; cursor:pointer; }
-
     .btn { display:block; width:100%; padding:13px 20px; border:none; border-radius:var(--radius-sm); font-family:var(--font); font-size:14px; font-weight:600; color:white; text-align:center; transition:transform .12s,opacity .12s,box-shadow .12s; cursor:pointer; margin-bottom:8px; }
     .btn:active { transform:scale(0.98); opacity:.9; }
     .btn-primary { background:linear-gradient(135deg,var(--accent) 0%,#7c3aed 100%); box-shadow:0 4px 14px rgba(99,102,241,.35); }
     .btn-mini { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border:none; border-radius:var(--radius-sm); font-size:12px; font-weight:600; color:white; white-space:nowrap; transition:opacity .12s,transform .12s; }
     .btn-mini:active { transform:scale(0.96); opacity:.85; }
-
     .msg { padding:10px 14px; border-radius:var(--radius-sm); font-size:13px; margin-top:10px; display:none; word-break:break-word; font-weight:500; }
     .msg.show { display:block; }
     .msg-error   { background:var(--red-bg);   color:var(--red-txt); }
     .msg-success { background:var(--green-bg); color:var(--green-txt); }
-
     .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
-    .badge-pending   { background:var(--amber-bg); color:var(--amber-txt); }
-    .badge-completed { background:var(--green-bg); color:var(--green-txt); }
-    .badge-rejected  { background:var(--red-bg);   color:var(--red-txt); }
-
+    .badge-pending   { background:var(--amber-bg);  color:var(--amber-txt); }
+    .badge-completed { background:var(--green-bg);  color:var(--green-txt); }
+    .badge-rejected  { background:var(--red-bg);    color:var(--red-txt); }
+    .badge-student   { background:var(--blue-bg);   color:var(--blue-txt); }
+    .badge-professor { background:var(--purple-bg); color:var(--purple-txt); }
     .req-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:10px; transition:box-shadow .15s; }
     .req-card:hover { box-shadow:var(--shadow-sm); }
     .req-top  { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:6px; }
@@ -107,19 +94,15 @@
     .reply-btn:hover { background:#bfdbfe; }
     .new-tag { display:inline-flex; align-items:center; background:var(--red); color:white; padding:1px 7px; border-radius:999px; font-size:9px; font-weight:800; text-transform:uppercase; animation:blink 1.8s ease-in-out infinite; vertical-align:middle; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.45} }
-
     .acct-box { background:linear-gradient(135deg,var(--accent-bg),#f0fdf4); border:1px solid rgba(99,102,241,.2); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:18px; }
     .acct-box .lbl   { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); margin-bottom:4px; }
     .acct-box .name  { font-size:15px; font-weight:600; color:var(--ink); }
     .acct-box .email { font-size:12px; color:var(--ink3); font-family:var(--mono); word-break:break-all; }
     .section-head { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink2); margin:16px 0 4px; }
     .section-sub  { font-size:12px; color:var(--ink3); margin-bottom:10px; }
-
     .empty { text-align:center; padding:36px 0; }
     .empty-icon { font-size:36px; margin-bottom:8px; opacity:.4; }
     .empty-text { font-size:14px; color:var(--ink4); }
-
-    /* ADMIN */
     .admin-shell { background:#f8fafc; min-height:100vh; min-height:100dvh; width:100%; }
     .admin-topbar { background:white; border-bottom:1px solid var(--border); padding:14px clamp(16px,4vw,32px); display:flex; align-items:center; justify-content:space-between; gap:12px; position:sticky; top:0; z-index:50; box-shadow:var(--shadow-sm); }
     .admin-brand { display:flex; align-items:center; gap:10px; }
@@ -127,7 +110,6 @@
     .admin-title { font-size:15px; font-weight:700; color:var(--ink); }
     .admin-btns { display:flex; gap:6px; }
     .admin-body { padding:clamp(16px,4vw,32px); max-width:1200px; margin:0 auto; }
-
     .stats-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
     @media(min-width:640px) { .stats-grid { grid-template-columns:repeat(4,1fr); } }
     .stat-tile { background:white; border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 18px; box-shadow:var(--shadow-sm); transition:transform .15s,box-shadow .15s; }
@@ -138,16 +120,14 @@
     .st-pending   .stat-label,.st-pending   .stat-val { color:var(--amber); }
     .st-completed .stat-label,.st-completed .stat-val { color:var(--green); }
     .st-rejected  .stat-label,.st-rejected  .stat-val { color:var(--red); }
-
     .filter-bar { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px; }
     .filter-bar::-webkit-scrollbar { display:none; }
     .filter-pill { padding:7px 16px; border:1.5px solid var(--border); background:white; border-radius:999px; font-size:12px; font-weight:600; color:var(--ink3); white-space:nowrap; flex-shrink:0; cursor:pointer; transition:all .15s; }
     .filter-pill:hover { border-color:var(--accent); color:var(--accent); }
     .filter-pill.active { background:var(--accent); color:white; border-color:var(--accent); }
-
     .data-table { background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-sm); }
-    .tbl-head { display:grid; grid-template-columns:1.6fr 1.3fr 2fr 1.6fr 1fr 90px; padding:12px 18px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--ink3); }
-    .tbl-row  { display:grid; grid-template-columns:1.6fr 1.3fr 2fr 1.6fr 1fr 90px; padding:14px 18px; border-bottom:1px solid #f8fafc; font-size:13px; color:var(--ink2); align-items:center; transition:background .1s; }
+    .tbl-head { display:grid; grid-template-columns:1.6fr 1.5fr 2fr 1.4fr 1fr 90px; padding:12px 18px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--ink3); }
+    .tbl-row  { display:grid; grid-template-columns:1.6fr 1.5fr 2fr 1.4fr 1fr 90px; padding:14px 18px; border-bottom:1px solid #f8fafc; font-size:13px; color:var(--ink2); align-items:center; transition:background .1s; }
     .tbl-row:last-child { border-bottom:none; }
     .tbl-row:hover { background:var(--surface2); }
     .clip { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -160,7 +140,6 @@
       .tbl-row>div { white-space:normal; overflow:visible; text-overflow:clip; }
       .tbl-row>div[data-label]::before { content:attr(data-label); display:block; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--ink4); margin-bottom:2px; }
     }
-
     .overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:200; align-items:flex-end; justify-content:center; padding:0; backdrop-filter:blur(3px); }
     .overlay.open { display:flex; animation:fadeOv .2s ease; }
     @keyframes fadeOv { from{background:rgba(15,23,42,0)} to{background:rgba(15,23,42,.6)} }
@@ -188,18 +167,14 @@
     .manage-msg.show { display:block; }
     @media(min-width:700px) { .overlay{align-items:center;padding:20px} .modal{border-radius:16px;max-height:90vh} }
     @media(min-width:1024px) { .overlay{padding:24px} .modal{padding:30px} }
-
     .divider { border:none; border-top:1px solid var(--border); margin:14px 0; }
     .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; display:inline-block; vertical-align:middle; margin-right:6px; }
     @keyframes spin { to{transform:rotate(360deg)} }
-    .mt-4 { margin-top:16px; }
     .mb-0 { margin-bottom:0 !important; }
   </style>
 </head>
 <body>
-
 <div class="bg-canvas"><div class="bg-grid"></div></div>
-
 <div class="app-root" id="appRoot">
 
   <!-- NOT LOGGED IN -->
@@ -207,8 +182,8 @@
     <div class="notloggedin-card glass-card">
       <div style="font-size:48px;margin-bottom:14px;">🔒</div>
       <h2 style="font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;">Access Denied</h2>
-      <p style="font-size:14px;color:var(--ink3);margin-bottom:20px;line-height:1.6;">Please sign in through the SRU Portal to access the Consultation Centre.</p>
-      <a href="../" style="display:block;padding:13px 20px;background:linear-gradient(135deg,#6366f1,#7c3aed);color:white;text-align:center;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(99,102,241,.35);">← Go to SRU Portal</a>
+      <p style="font-size:14px;color:var(--ink3);margin-bottom:20px;line-height:1.6;">Please sign in through the SRU Hub to access the Consultation Center.</p>
+      <a href="../" style="display:block;padding:13px 20px;background:linear-gradient(135deg,#6366f1,#7c3aed);color:white;text-align:center;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 4px 14px rgba(99,102,241,.35);">← Go to SRU Hub</a>
     </div>
   </div>
 
@@ -220,26 +195,23 @@
           <div class="sd-header-left">
             <div class="sd-avatar">🎓</div>
             <div style="min-width:0;">
-              <div class="sd-name"  id="sdWelcome">Student</div>
+              <div class="sd-name" id="sdWelcome">Student</div>
               <div class="sd-email" id="sdEmailDisplay"></div>
             </div>
           </div>
           <div class="sd-header-btns">
-            <button class="btn-mini" onclick="goPortal()" style="background:rgba(255,255,255,.15);">🏠 Portal</button>
-            <button class="btn-mini" onclick="logout()"   style="background:rgba(255,255,255,.15);">Logout</button>
+            <button class="btn-mini" onclick="goPortal()" style="background:rgba(255,255,255,.15);">🏠 Hub</button>
+            <button class="btn-mini" onclick="logout()" style="background:rgba(255,255,255,.15);">Logout</button>
           </div>
         </div>
-
         <div class="tabs-bar">
-          <button class="tab-btn active" id="tBtn-submit"   onclick="switchTab('submit',event)">📝 ส่งคำร้อง</button>
+          <button class="tab-btn active" id="tBtn-submit" onclick="switchTab('submit',event)">📝 ส่งคำร้อง</button>
           <div class="tab-wrap">
             <button class="tab-btn" id="tBtn-history" onclick="switchTab('history',event)">📁 ประวัติ</button>
             <span class="notif-count" id="notifBadge"></span>
           </div>
           <button class="tab-btn" id="tBtn-settings" onclick="switchTab('settings',event)">⚙️ Settings</button>
         </div>
-
-        <!-- Submit -->
         <div class="tab-pane active" id="tp-submit">
           <div class="inner-card">
             <h3>ส่งคำร้องใหม่</h3>
@@ -261,21 +233,15 @@
             <div class="msg" id="sdMsg"></div>
           </div>
         </div>
-
-        <!-- History -->
         <div class="tab-pane" id="tp-history">
-          <div id="historyList">
-            <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Loading…</div></div>
-          </div>
+          <div id="historyList"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Loading…</div></div></div>
         </div>
-
-        <!-- Settings -->
         <div class="tab-pane" id="tp-settings">
           <div class="inner-card">
             <h3>Account Settings</h3>
             <div class="acct-box">
               <div class="lbl">Logged in as</div>
-              <div class="name"  id="setAccName"></div>
+              <div class="name" id="setAccName"></div>
               <div class="email" id="setAccEmail"></div>
             </div>
             <div class="section-head">🔑 Change Password</div>
@@ -300,6 +266,111 @@
     </div>
   </div>
 
+  <!-- PROFESSOR DASHBOARD -->
+  <div class="page" id="page-professorDashboard">
+    <div class="sd-outer">
+      <div class="sd-card">
+        <div class="sd-header" style="background:linear-gradient(135deg,#2d1b69 0%,#4c1d95 100%);">
+          <div class="sd-header-left">
+            <div class="sd-avatar">👨‍🏫</div>
+            <div style="min-width:0;">
+              <div class="sd-name" id="profWelcome">Professor</div>
+              <div class="sd-email" id="profEmailDisplay"></div>
+            </div>
+          </div>
+          <div class="sd-header-btns">
+            <button class="btn-mini" onclick="goPortal()" style="background:rgba(255,255,255,.15);">🏠 Hub</button>
+            <button class="btn-mini" onclick="logout()" style="background:rgba(255,255,255,.15);">Logout</button>
+          </div>
+        </div>
+        <div class="tabs-bar">
+          <button class="tab-btn active" id="pBtn-submit" onclick="switchProfTab('submit',event)">📝 My Request</button>
+          <div class="tab-wrap">
+            <button class="tab-btn" id="pBtn-history" onclick="switchProfTab('history',event)">📁 My History</button>
+            <span class="notif-count" id="profNotifBadge"></span>
+          </div>
+          <button class="tab-btn" id="pBtn-admin" onclick="switchProfTab('admin',event)">🛠️ Admin Panel</button>
+          <button class="tab-btn" id="pBtn-settings" onclick="switchProfTab('settings',event)">⚙️ Settings</button>
+        </div>
+        <div class="tab-pane active" id="pp-submit">
+          <div class="inner-card">
+            <h3>ส่งคำร้องใหม่</h3>
+            <div class="field-wrap">
+              <label class="field-label">หมวดหมู่</label>
+              <select class="field" id="profCat">
+                <option value="ปรึกษาทั่วไป (General)">ปรึกษาทั่วไป (General)</option>
+                <option value="วิชาการ (Academic)">วิชาการ (Academic)</option>
+                <option value="ทุนการศึกษา (Scholarship)">ทุนการศึกษา (Scholarship)</option>
+                <option value="สุขภาพจิต (Mental Health)">สุขภาพจิต (Mental Health)</option>
+                <option value="อื่นๆ (Other)">อื่นๆ (Other)</option>
+              </select>
+            </div>
+            <div class="field-wrap">
+              <label class="field-label">รายละเอียด</label>
+              <textarea class="field" id="profDetail" placeholder="กรอกรายละเอียดของคุณ..."></textarea>
+            </div>
+            <button class="btn btn-primary mb-0" onclick="submitProfRequest()">ส่งคำร้อง →</button>
+            <div class="msg" id="profMsg"></div>
+          </div>
+        </div>
+        <div class="tab-pane" id="pp-history">
+          <div id="profHistoryList"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Loading…</div></div></div>
+        </div>
+        <div class="tab-pane" id="pp-admin">
+          <div class="admin-shell" style="min-height:auto;">
+            <div style="padding:16px;">
+              <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+                <button class="btn-mini" onclick="loadProfAdminData()" style="background:var(--accent);">🔄 Refresh</button>
+              </div>
+              <div class="stats-grid" style="margin-bottom:16px;">
+                <div class="stat-tile st-total">    <div class="stat-label">Total</div>     <div class="stat-val" id="pstTotal">0</div></div>
+                <div class="stat-tile st-pending">  <div class="stat-label">Pending</div>   <div class="stat-val" id="pstPending">0</div></div>
+                <div class="stat-tile st-completed"><div class="stat-label">Completed</div> <div class="stat-val" id="pstCompleted">0</div></div>
+                <div class="stat-tile st-rejected"> <div class="stat-label">Rejected</div>  <div class="stat-val" id="pstRejected">0</div></div>
+              </div>
+              <div class="filter-bar">
+                <button class="filter-pill active" onclick="applyProfFilter('all',event)">All</button>
+                <button class="filter-pill" onclick="applyProfFilter('pending',event)">⏳ Pending</button>
+                <button class="filter-pill" onclick="applyProfFilter('completed',event)">✅ Completed</button>
+                <button class="filter-pill" onclick="applyProfFilter('rejected',event)">❌ Rejected</button>
+              </div>
+              <div class="data-table">
+                <div class="tbl-head"><div>Date</div><div>Name</div><div>Email</div><div>Category</div><div>Status</div><div>Action</div></div>
+                <div id="profAdminTblBody"><div class="tbl-empty"><span class="spinner"></span> Loading…</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane" id="pp-settings">
+          <div class="inner-card">
+            <h3>Account Settings</h3>
+            <div class="acct-box">
+              <div class="lbl">Logged in as</div>
+              <div class="name" id="profAccName"></div>
+              <div class="email" id="profAccEmail"></div>
+            </div>
+            <div class="section-head">🔑 Change Password</div>
+            <div class="section-sub">Update your login password.</div>
+            <div class="field-wrap">
+              <label class="field-label">Current Password</label>
+              <input class="field" type="password" id="profCpOld" placeholder="Current password" autocomplete="current-password">
+            </div>
+            <div class="field-wrap">
+              <label class="field-label">New Password</label>
+              <input class="field" type="password" id="profCpNew" placeholder="Min 6 characters" autocomplete="new-password">
+            </div>
+            <div class="field-wrap">
+              <label class="field-label">Confirm New Password</label>
+              <input class="field" type="password" id="profCpConfirm" placeholder="Repeat new password" autocomplete="new-password">
+            </div>
+            <button class="btn btn-primary mb-0" onclick="changeProfPassword()">Update Password</button>
+            <div class="msg" id="profCpMsg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ADMIN DASHBOARD -->
   <div class="page" id="page-adminDashboard">
     <div class="admin-shell">
@@ -309,7 +380,7 @@
           <div class="admin-title">Admin Dashboard</div>
         </div>
         <div class="admin-btns">
-          <button class="btn-mini btn-primary" onclick="loadAdminData()" style="background:var(--accent);">🔄 Refresh</button>
+          <button class="btn-mini" onclick="loadAdminData()" style="background:var(--accent);">🔄 Refresh</button>
           <button class="btn-mini" onclick="goPortal()" style="background:var(--green);">🏠</button>
           <button class="btn-mini" onclick="logout()" style="background:#6b7280;">Logout</button>
         </div>
@@ -328,7 +399,7 @@
           <button class="filter-pill" onclick="applyFilter('rejected',event)">❌ Rejected</button>
         </div>
         <div class="data-table">
-          <div class="tbl-head"><div>Date & Time</div><div>Name</div><div>Email</div><div>Category</div><div>Status</div><div>Action</div></div>
+          <div class="tbl-head"><div>Date</div><div>Name</div><div>Email</div><div>Category</div><div>Status</div><div>Action</div></div>
           <div id="adminTblBody"><div class="tbl-empty"><span class="spinner"></span> Loading…</div></div>
         </div>
       </div>
@@ -345,12 +416,12 @@
       <div style="font-size:28px;">💬</div>
       <div><h3 style="margin:0;font-size:17px;">คำตอบจากแอดมิน</h3><p style="margin:0;font-size:11px;color:var(--ink4);">Reply from Admin</p></div>
     </div>
-    <div id="vrMeta"     style="font-size:11px;color:var(--ink4);margin-bottom:4px;font-family:var(--mono);"></div>
+    <div id="vrMeta" style="font-size:11px;color:var(--ink4);margin-bottom:4px;font-family:var(--mono);"></div>
     <div id="vrCategory" style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:10px;"></div>
     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:6px;">📝 คำร้องของคุณ</div>
-    <div class="detail-box"            id="vrRequest"></div>
+    <div class="detail-box" id="vrRequest"></div>
     <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:6px;">💬 คำตอบ</div>
-    <div class="detail-box reply-box"  id="vrReply"></div>
+    <div class="detail-box reply-box" id="vrReply"></div>
     <div class="modal-btns"><button style="background:var(--accent);color:white;" onclick="closeModal('m-viewReply')">ปิด (Close)</button></div>
   </div>
 </div>
@@ -392,8 +463,8 @@
 </div>
 
 <script>
-  var API_URL     = 'https://script.google.com/macros/s/AKfycbwYBwryZsJ-HL1cxsgQj9o3_2C4ETrznHZdrqCJKLtUx2DoBcYGRIrQnUyoSGK1y1leCg/exec';
-  var PORTAL_URL  = '../';
+  var API_URL    = 'https://script.google.com/macros/s/AKfycbwYBwryZsJ-HL1cxsgQj9o3_2C4ETrznHZdrqCJKLtUx2DoBcYGRIrQnUyoSGK1y1leCg/exec';
+  var PORTAL_URL = '../';
 
   var _mem={};
   var _lsOk=(function(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true;}catch(e){return false;}})();
@@ -407,7 +478,7 @@
     fetch(url,{method:'GET',redirect:'follow'}).then(function(r){return r.json();}).then(function(d){onSuccess(d);}).catch(function(e){if(onError)onError(e);});
   }
 
-  var currentUser=null, allRequests=[], myRequests=[], currentFilter='all', selectedReq=null;
+  var currentUser=null, allRequests=[], profRequests=[], myRequests=[], currentFilter='all', profFilter='all', selectedReq=null;
 
   function esc(t){if(t===null||t===undefined)return'';var d=document.createElement('div');d.textContent=String(t);return d.innerHTML;}
   function showMsg(id,text,type){var el=document.getElementById(id);if(!el)return;el.textContent=text;el.className='msg show '+(type==='error'?'msg-error':'msg-success');}
@@ -422,43 +493,46 @@
     var root=document.getElementById('appRoot');
     if(name==='adminDashboard'){root.classList.add('admin-mode');document.body.style.background='#f8fafc';loadAdminData();}
     else{root.classList.remove('admin-mode');document.body.style.background='#0f172a';}
-    if(name==='studentDashboard'){resetTabs();setTimeout(checkUnreadReplies,700);}
+    if(name==='studentDashboard'){resetStudentTabs();setTimeout(checkUnreadReplies,700);}
+    if(name==='professorDashboard'){resetProfTabs();setTimeout(checkProfUnread,700);}
     window.scrollTo(0,0);
   }
-  function resetTabs(){
-    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+
+  function resetStudentTabs(){
+    document.querySelectorAll('#page-studentDashboard .tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('#page-studentDashboard .tab-pane').forEach(function(p){p.classList.remove('active');});
     document.getElementById('tBtn-submit').classList.add('active');
     document.getElementById('tp-submit').classList.add('active');
   }
+  function resetProfTabs(){
+    document.querySelectorAll('#page-professorDashboard .tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('#page-professorDashboard .tab-pane').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('pBtn-submit').classList.add('active');
+    document.getElementById('pp-submit').classList.add('active');
+  }
 
-  // ── ON LOAD: read user from sessionStorage (passed from portal) ──
+  // ── ON LOAD ──
   window.addEventListener('load', function() {
     var user = null;
-    // Try sessionStorage first (coming from portal click)
-    try {
-      var raw = sessionStorage.getItem('sru_portal_user');
-      if(raw) user = JSON.parse(raw);
-    } catch(e){}
-
-    // Fallback: try localStorage session (direct URL access with active session)
+    try { var raw = sessionStorage.getItem('sru_portal_user'); if(raw) user = JSON.parse(raw); } catch(e){}
     if(!user) {
       try {
         var raw2 = lsGet('sru_session');
-        if(raw2) {
-          var s = JSON.parse(raw2);
-          if(!s.expires || Date.now() <= s.expires) user = s.user;
-        }
+        if(raw2) { var s = JSON.parse(raw2); user = s.user || null; }
       } catch(e){}
     }
-
     if(!user) { showPage('notLoggedIn'); return; }
     currentUser = user;
 
     if(currentUser.role === 'admin') {
       showPage('adminDashboard');
+    } else if(currentUser.role === 'professor') {
+      document.getElementById('profWelcome').textContent = currentUser.name;
+      document.getElementById('profEmailDisplay').textContent = currentUser.email;
+      showPage('professorDashboard');
+      setTimeout(checkProfUnread, 900);
     } else {
-      document.getElementById('sdWelcome').textContent    = currentUser.name;
+      document.getElementById('sdWelcome').textContent = currentUser.name;
       document.getElementById('sdEmailDisplay').textContent = currentUser.email;
       showPage('studentDashboard');
       setTimeout(checkUnreadReplies, 900);
@@ -472,17 +546,28 @@
     window.location.href = PORTAL_URL;
   }
 
-  // ── TABS ──
+  // ── STUDENT TABS ──
   function switchTab(name,ev){
-    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-    document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+    document.querySelectorAll('#page-studentDashboard .tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('#page-studentDashboard .tab-pane').forEach(function(p){p.classList.remove('active');});
     if(ev&&ev.currentTarget)ev.currentTarget.classList.add('active');
     document.getElementById('tp-'+name).classList.add('active');
     if(name==='history'){loadHistory();markAllSeen();}
     if(name==='settings'){loadSettings();}
   }
 
-  // ── SUBMIT REQUEST ──
+  // ── PROFESSOR TABS ──
+  function switchProfTab(name,ev){
+    document.querySelectorAll('#page-professorDashboard .tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('#page-professorDashboard .tab-pane').forEach(function(p){p.classList.remove('active');});
+    if(ev&&ev.currentTarget)ev.currentTarget.classList.add('active');
+    document.getElementById('pp-'+name).classList.add('active');
+    if(name==='history'){loadProfHistory();markProfSeen();}
+    if(name==='admin'){loadProfAdminData();}
+    if(name==='settings'){loadProfSettings();}
+  }
+
+  // ── SUBMIT REQUEST (student) ──
   function submitRequest(){
     var cat=document.getElementById('sdCat').value;
     var det=document.getElementById('sdDetail').value.trim();
@@ -494,32 +579,58 @@
     },function(e){showMsg('sdMsg','Network error: '+e.message,'error');});
   }
 
-  // ── HISTORY ──
+  // ── SUBMIT REQUEST (professor) ──
+  function submitProfRequest(){
+    var cat=document.getElementById('profCat').value;
+    var det=document.getElementById('profDetail').value.trim();
+    if(!det){showMsg('profMsg','กรุณากรอกรายละเอียด','error');return;}
+    showMsg('profMsg','กำลังส่ง…','success');
+    api('submitRequest',{studentEmail:currentUser.email,category:cat,details:det},function(r){
+      if(r.success){showMsg('profMsg','✅ ส่งคำร้องสำเร็จ!','success');setVal('profDetail','');setTimeout(function(){clearMsg('profMsg');},3000);}
+      else showMsg('profMsg',r.message,'error');
+    },function(e){showMsg('profMsg','Network error: '+e.message,'error');});
+  }
+
+  // ── STUDENT HISTORY ──
   function loadHistory(){
     document.getElementById('historyList').innerHTML='<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Loading…</div></div>';
     api('getMyRequests',{studentEmail:currentUser.email},function(reqs){
       myRequests=reqs||[];
-      if(!myRequests.length){document.getElementById('historyList').innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">ยังไม่มีคำร้อง</div></div>';return;}
-      var seenKey='seen_'+currentUser.email;
-      var seen=JSON.parse(lsGet(seenKey)||'[]');
-      var statusLabel={pending:'รอตอบกลับ',completed:'ตอบกลับแล้ว',rejected:'ปฏิเสธ'};
-      var html='';
-      myRequests.forEach(function(r,idx){
-        var st=(r.status||'pending').toLowerCase();
-        var hasReply=r.reply&&String(r.reply).trim()!=='';
-        var isNew=hasReply&&seen.indexOf(String(r.id))===-1;
-        html+='<div class="req-card"><div class="req-top"><div class="req-cat">'+esc(r.category)+'</div><div class="req-time">'+esc(r.timestamp)+'</div></div>'
-          +'<div class="req-body">'+esc(r.details)+'</div>'
-          +'<span class="badge badge-'+st+'">'+(statusLabel[st]||st)+'</span>';
-        if(hasReply)html+=' <button class="reply-btn" onclick="openReplyModal('+idx+')">💬 ดูคำตอบ'+(isNew?'<span class="new-tag">NEW</span>':'')+'</button>';
-        html+='</div>';
-      });
-      document.getElementById('historyList').innerHTML=html;
-    },function(){document.getElementById('historyList').innerHTML='<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">Failed to load</div></div>';});
+      renderHistory('historyList', myRequests, 'notifBadge');
+    });
   }
 
-  function openReplyModal(idx){
-    var r=myRequests[idx];if(!r)return;
+  // ── PROFESSOR HISTORY ──
+  function loadProfHistory(){
+    document.getElementById('profHistoryList').innerHTML='<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Loading…</div></div>';
+    api('getMyRequests',{studentEmail:currentUser.email},function(reqs){
+      profRequests=reqs||[];
+      renderHistory('profHistoryList', profRequests, 'profNotifBadge');
+    });
+  }
+
+  function renderHistory(listId, reqs, badgeId){
+    if(!reqs.length){document.getElementById(listId).innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">ยังไม่มีคำร้อง</div></div>';return;}
+    var seenKey='seen_'+currentUser.email;
+    var seen=JSON.parse(lsGet(seenKey)||'[]');
+    var statusLabel={pending:'รอตอบกลับ',completed:'ตอบกลับแล้ว',rejected:'ปฏิเสธ'};
+    var html='';
+    reqs.forEach(function(r,idx){
+      var st=(r.status||'pending').toLowerCase();
+      var hasReply=r.reply&&String(r.reply).trim()!=='';
+      var isNew=hasReply&&seen.indexOf(String(r.id))===-1;
+      html+='<div class="req-card"><div class="req-top"><div class="req-cat">'+esc(r.category)+'</div><div class="req-time">'+esc(r.timestamp)+'</div></div>'
+        +'<div class="req-body">'+esc(r.details)+'</div>'
+        +'<span class="badge badge-'+st+'">'+(statusLabel[st]||st)+'</span>';
+      if(hasReply)html+=' <button class="reply-btn" onclick="openReplyModal('+idx+',\''+listId+'\')">💬 ดูคำตอบ'+(isNew?'<span class="new-tag">NEW</span>':'')+'</button>';
+      html+='</div>';
+    });
+    document.getElementById(listId).innerHTML=html;
+  }
+
+  function openReplyModal(idx, listId){
+    var r = listId==='profHistoryList' ? profRequests[idx] : myRequests[idx];
+    if(!r)return;
     var seenKey='seen_'+currentUser.email;
     var seen=JSON.parse(lsGet(seenKey)||'[]');
     if(seen.indexOf(String(r.id))===-1){seen.push(String(r.id));lsSet(seenKey,JSON.stringify(seen));}
@@ -528,21 +639,32 @@
     document.getElementById('vrRequest').textContent=r.details||'';
     document.getElementById('vrReply').textContent=r.reply||'';
     openModal('m-viewReply');
-    checkUnreadReplies();loadHistory();
+    checkUnreadReplies(); checkProfUnread();
+    if(listId==='profHistoryList') loadProfHistory(); else loadHistory();
   }
 
-  // ── BADGE ──
+  // ── BADGES ──
   function checkUnreadReplies(){
     if(!currentUser)return;
     api('getMyRequests',{studentEmail:currentUser.email},function(reqs){
       var seenKey='seen_'+currentUser.email;
       var seen=JSON.parse(lsGet(seenKey)||'[]');
       var unread=(reqs||[]).filter(function(r){return r.reply&&String(r.reply).trim()!==''&&seen.indexOf(String(r.id))===-1;});
-      updateBadge(unread.length);
+      updateBadge('notifBadge', unread.length);
     });
   }
-  function updateBadge(count){
-    var badge=document.getElementById('notifBadge');
+  function checkProfUnread(){
+    if(!currentUser)return;
+    api('getMyRequests',{studentEmail:currentUser.email},function(reqs){
+      var seenKey='seen_'+currentUser.email;
+      var seen=JSON.parse(lsGet(seenKey)||'[]');
+      var unread=(reqs||[]).filter(function(r){return r.reply&&String(r.reply).trim()!==''&&seen.indexOf(String(r.id))===-1;});
+      updateBadge('profNotifBadge', unread.length);
+    });
+  }
+  function updateBadge(id, count){
+    var badge=document.getElementById(id);
+    if(!badge)return;
     if(count>0){badge.textContent=count>9?'9+':String(count);badge.classList.add('show');}
     else{badge.classList.remove('show');}
   }
@@ -552,11 +674,20 @@
       var seenKey='seen_'+currentUser.email;
       var seen=JSON.parse(lsGet(seenKey)||'[]');
       (reqs||[]).forEach(function(r){if(r.reply&&String(r.reply).trim()!==''&&seen.indexOf(String(r.id))===-1)seen.push(String(r.id));});
-      lsSet(seenKey,JSON.stringify(seen));updateBadge(0);
+      lsSet(seenKey,JSON.stringify(seen));updateBadge('notifBadge',0);
+    });
+  }
+  function markProfSeen(){
+    if(!currentUser)return;
+    api('getMyRequests',{studentEmail:currentUser.email},function(reqs){
+      var seenKey='seen_'+currentUser.email;
+      var seen=JSON.parse(lsGet(seenKey)||'[]');
+      (reqs||[]).forEach(function(r){if(r.reply&&String(r.reply).trim()!==''&&seen.indexOf(String(r.id))===-1)seen.push(String(r.id));});
+      lsSet(seenKey,JSON.stringify(seen));updateBadge('profNotifBadge',0);
     });
   }
 
-  // ── SETTINGS ──
+  // ── STUDENT SETTINGS ──
   function loadSettings(){
     if(!currentUser)return;
     document.getElementById('setAccName').textContent=currentUser.name;
@@ -575,14 +706,85 @@
     showMsg('cpMsg','Updating…','success');
     api('changePassword',{email:currentUser.email,oldPassword:oldP,newPassword:newP},function(r){
       if(r.success){showMsg('cpMsg','✅ '+r.message,'success');['cpOld','cpNew','cpConfirm'].forEach(function(id){setVal(id,'');});
-        // Update remembered password
         if(lsGet('sru_remember')==='1') lsSet('sru_pass',newP);
         setTimeout(function(){clearMsg('cpMsg');},4000);
       }else showMsg('cpMsg',r.message,'error');
     },function(e){showMsg('cpMsg','Network error: '+e.message,'error');});
   }
 
-  // ── ADMIN ──
+  // ── PROFESSOR SETTINGS ──
+  function loadProfSettings(){
+    if(!currentUser)return;
+    document.getElementById('profAccName').textContent=currentUser.name;
+    document.getElementById('profAccEmail').textContent=currentUser.email;
+    ['profCpOld','profCpNew','profCpConfirm'].forEach(function(id){setVal(id,'');});
+    clearMsg('profCpMsg');
+  }
+  function changeProfPassword(){
+    var oldP=document.getElementById('profCpOld').value;
+    var newP=document.getElementById('profCpNew').value;
+    var conf=document.getElementById('profCpConfirm').value;
+    if(!oldP||!newP||!conf){showMsg('profCpMsg','Please fill all fields','error');return;}
+    if(newP.length<6){showMsg('profCpMsg','Min 6 characters','error');return;}
+    if(newP!==conf){showMsg('profCpMsg','Passwords do not match','error');return;}
+    if(oldP===newP){showMsg('profCpMsg','New password must be different','error');return;}
+    showMsg('profCpMsg','Updating…','success');
+    api('changePassword',{email:currentUser.email,oldPassword:oldP,newPassword:newP},function(r){
+      if(r.success){showMsg('profCpMsg','✅ '+r.message,'success');['profCpOld','profCpNew','profCpConfirm'].forEach(function(id){setVal(id,'');});
+        setTimeout(function(){clearMsg('profCpMsg');},4000);
+      }else showMsg('profCpMsg',r.message,'error');
+    },function(e){showMsg('profCpMsg','Network error: '+e.message,'error');});
+  }
+
+  // ── PROFESSOR ADMIN PANEL ──
+  function loadProfAdminData(){
+    api('getStats',{},function(s){
+      document.getElementById('pstTotal').textContent=s.total;
+      document.getElementById('pstPending').textContent=s.pending;
+      document.getElementById('pstCompleted').textContent=s.completed;
+      document.getElementById('pstRejected').textContent=s.rejected;
+    });
+    document.getElementById('profAdminTblBody').innerHTML='<div class="tbl-empty"><span class="spinner"></span> Loading…</div>';
+    api('getAllRequests',{},function(reqs){allRequests=reqs||[];renderProfTable();},function(){
+      document.getElementById('profAdminTblBody').innerHTML='<div class="tbl-empty">❌ Failed to load.</div>';
+    });
+  }
+  function applyProfFilter(f,ev){
+    profFilter=f;
+    document.querySelectorAll('#pp-admin .filter-pill').forEach(function(b){b.classList.remove('active');});
+    if(ev&&ev.currentTarget)ev.currentTarget.classList.add('active');
+    renderProfTable();
+  }
+  function getProfFiltered(){
+    if(profFilter==='all')return allRequests;
+    return allRequests.filter(function(r){return(r.status||'pending').toLowerCase()===profFilter;});
+  }
+  function renderProfTable(){
+    var list=getProfFiltered();
+    if(!list.length){document.getElementById('profAdminTblBody').innerHTML='<div class="tbl-empty">No requests found.</div>';return;}
+    var html='';
+    list.forEach(function(r,i){
+      var st=(r.status||'pending').toLowerCase();
+      var roleBadge=r.submitterRole==='professor'
+        ?'<span class="badge badge-professor" style="font-size:9px;padding:2px 6px;">Prof</span>'
+        :'<span class="badge badge-student" style="font-size:9px;padding:2px 6px;">Student</span>';
+      html+='<div class="tbl-row">'
+        +'<div class="clip" data-label="Date">'+esc(r.timestamp)+'</div>'
+        +'<div class="clip" data-label="Name">'+esc(r.studentName||'—')+' '+roleBadge+'</div>'
+        +'<div class="clip" data-label="Email">'+esc(r.studentEmail)+'</div>'
+        +'<div class="clip" data-label="Category">'+esc(r.category)+'</div>'
+        +'<div data-label="Status"><span class="badge badge-'+st+'">'+st+'</span></div>'
+        +'<div data-label="Action"><button class="view-btn" onclick="openManageProf('+i+')">View</button></div>'
+        +'</div>';
+    });
+    document.getElementById('profAdminTblBody').innerHTML=html;
+  }
+  function openManageProf(idx){
+    var list=getProfFiltered(); selectedReq=list[idx]; if(!selectedReq)return;
+    openManageModal(selectedReq);
+  }
+
+  // ── ADMIN DASHBOARD ──
   function loadAdminData(){
     api('getStats',{},function(s){
       document.getElementById('stTotal').textContent=s.total;
@@ -591,24 +793,32 @@
       document.getElementById('stRejected').textContent=s.rejected;
     });
     document.getElementById('adminTblBody').innerHTML='<div class="tbl-empty"><span class="spinner"></span> Loading…</div>';
-    api('getAllRequests',{},function(reqs){allRequests=reqs||[];renderTable();},function(){document.getElementById('adminTblBody').innerHTML='<div class="tbl-empty">❌ Failed to load.</div>';});
+    api('getAllRequests',{},function(reqs){allRequests=reqs||[];renderTable();},function(){
+      document.getElementById('adminTblBody').innerHTML='<div class="tbl-empty">❌ Failed to load.</div>';
+    });
   }
   function applyFilter(f,ev){
     currentFilter=f;
-    document.querySelectorAll('.filter-pill').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('#page-adminDashboard .filter-pill').forEach(function(b){b.classList.remove('active');});
     if(ev&&ev.currentTarget)ev.currentTarget.classList.add('active');
     renderTable();
   }
-  function getFiltered(){if(currentFilter==='all')return allRequests;return allRequests.filter(function(r){return(r.status||'pending').toLowerCase()===currentFilter;});}
+  function getFiltered(){
+    if(currentFilter==='all')return allRequests;
+    return allRequests.filter(function(r){return(r.status||'pending').toLowerCase()===currentFilter;});
+  }
   function renderTable(){
     var list=getFiltered();
     if(!list.length){document.getElementById('adminTblBody').innerHTML='<div class="tbl-empty">No requests found.</div>';return;}
     var html='';
     list.forEach(function(r,i){
       var st=(r.status||'pending').toLowerCase();
+      var roleBadge=r.submitterRole==='professor'
+        ?'<span class="badge badge-professor" style="font-size:9px;padding:2px 6px;">Prof</span>'
+        :'<span class="badge badge-student" style="font-size:9px;padding:2px 6px;">Student</span>';
       html+='<div class="tbl-row">'
         +'<div class="clip" data-label="Date">'+esc(r.timestamp)+'</div>'
-        +'<div class="clip" data-label="Name">'+esc(r.studentName||'—')+'</div>'
+        +'<div class="clip" data-label="Name">'+esc(r.studentName||'—')+' '+roleBadge+'</div>'
         +'<div class="clip" data-label="Email">'+esc(r.studentEmail)+'</div>'
         +'<div class="clip" data-label="Category">'+esc(r.category)+'</div>'
         +'<div data-label="Status"><span class="badge badge-'+st+'">'+st+'</span></div>'
@@ -617,12 +827,16 @@
     });
     document.getElementById('adminTblBody').innerHTML=html;
   }
-  function openManage(idx){
-    var list=getFiltered();selectedReq=list[idx];if(!selectedReq)return;
-    var r=selectedReq;var st=(r.status||'pending').toLowerCase();
+  function openManage(idx){ var list=getFiltered(); selectedReq=list[idx]; if(!selectedReq)return; openManageModal(selectedReq); }
+
+  function openManageModal(r){
+    var st=(r.status||'pending').toLowerCase();
+    var roleBadge=r.submitterRole==='professor'
+      ?'<span class="badge badge-professor">Professor</span>'
+      :'<span class="badge badge-student">Student</span>';
     document.getElementById('manageInfo').innerHTML=
       '<div class="info-row"><span class="info-k">📅 Date</span><span class="info-v">'+esc(r.timestamp)+'</span></div>'
-      +'<div class="info-row"><span class="info-k">👤 Student</span><span class="info-v">'+esc(r.studentName||'—')+'</span></div>'
+      +'<div class="info-row"><span class="info-k">👤 Name</span><span class="info-v">'+esc(r.studentName||'—')+' '+roleBadge+'</span></div>'
       +'<div class="info-row"><span class="info-k">📧 Email</span><span class="info-v">'+esc(r.studentEmail)+'</span></div>'
       +'<div class="info-row"><span class="info-k">📂 Category</span><span class="info-v">'+esc(r.category)+'</span></div>'
       +'<div class="info-row"><span class="info-k">📊 Status</span><span class="info-v"><span class="badge badge-'+st+'">'+st+'</span></span></div>'
@@ -632,15 +846,17 @@
     setVal('manageReplyTxt',r.reply||'');
     clearManageMsg();openModal('m-manage');
   }
+
   function showManageMsg(text,type){var el=document.getElementById('manageMsg');el.textContent=text;el.className='manage-msg show '+(type==='error'?'msg-error':'msg-success');}
   function clearManageMsg(){var el=document.getElementById('manageMsg');el.textContent='';el.className='manage-msg';}
+
   function submitReply(){
     if(!selectedReq)return;
     var txt=document.getElementById('manageReplyTxt').value.trim();
     if(!txt){showManageMsg('Reply cannot be empty','error');return;}
     showManageMsg('Sending…','success');
     api('replyToRequest',{rowIndex:selectedReq.rowIndex,replyText:txt},function(r){
-      if(r.success){showManageMsg('✅ Reply sent!','success');setTimeout(function(){closeModal('m-manage');loadAdminData();},1200);}
+      if(r.success){showManageMsg('✅ Reply sent!','success');setTimeout(function(){closeModal('m-manage');refreshAdminData();},1200);}
       else showManageMsg(r.message||'Failed','error');
     },function(e){showManageMsg('Network error: '+e.message,'error');});
   }
@@ -648,7 +864,7 @@
     if(!selectedReq)return;
     showManageMsg('Updating…','success');
     api('updateRequestStatus',{rowIndex:selectedReq.rowIndex,newStatus:newStatus},function(r){
-      if(r.success){showManageMsg('✅ Status updated','success');setTimeout(function(){closeModal('m-manage');loadAdminData();},1000);}
+      if(r.success){showManageMsg('✅ Status updated','success');setTimeout(function(){closeModal('m-manage');refreshAdminData();},1000);}
       else showManageMsg(r.message||'Failed','error');
     },function(e){showManageMsg('Network error: '+e.message,'error');});
   }
@@ -657,9 +873,13 @@
     if(!selectedReq){closeModal('m-deleteConfirm');return;}
     api('deleteRequest',{rowIndex:selectedReq.rowIndex},function(r){
       closeModal('m-deleteConfirm');
-      if(r.success){closeModal('m-manage');loadAdminData();}
+      if(r.success){closeModal('m-manage');refreshAdminData();}
       else showManageMsg(r.message||'Failed to delete','error');
     },function(e){closeModal('m-deleteConfirm');showManageMsg('Network error: '+e.message,'error');});
+  }
+  function refreshAdminData(){
+    if(currentUser && currentUser.role==='admin') loadAdminData();
+    else if(currentUser && currentUser.role==='professor') loadProfAdminData();
   }
 
   document.querySelectorAll('.overlay').forEach(function(ov){
