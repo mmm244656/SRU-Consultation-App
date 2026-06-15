@@ -4,7 +4,8 @@
 const SHEET_ID             = '14ev6msUxlbJeP3XU3mL9YG9iw-eMPaCJDNGrwRUrkFE';
 const ADMIN_EMAIL          = 'admin@rex.com';
 const ADMIN_PASSWORD       = 'rex123123';
-const STUDENT_EMAIL_DOMAIN = '@student.sru.ac.th';
+const STUDENT_DOMAIN       = '@student.sru.ac.th';
+const PROFESSOR_DOMAIN     = '@sru.ac.th';
 const TEST_EMAIL           = 'test@student.sru.ac.th';
 const TEST_PASSWORD        = 'test123';
 const SCRIPT_URL           = 'https://script.google.com/macros/s/AKfycbwYBwryZsJ-HL1cxsgQj9o3_2C4ETrznHZdrqCJKLtUx2DoBcYGRIrQnUyoSGK1y1leCg/exec';
@@ -14,7 +15,7 @@ const SCRIPT_URL           = 'https://script.google.com/macros/s/AKfycbwYBwryZsJ
 // ══════════════════════════════════════════════════════
 function doGet(e) {
   if (e && e.parameter) {
-    // Handle email verification link clicked in browser
+    // Email verification link clicked in browser
     if (e.parameter.action === 'verifyEmail' && e.parameter.token) {
       var result = verifyEmail(e.parameter.token);
       var html = result.success
@@ -36,7 +37,6 @@ function doGet(e) {
           '← Back to SRU Hub</a></div>';
       return HtmlService.createHtmlOutput(html);
     }
-    // Regular API action
     if (e.parameter.action) {
       return handleApiRequest(e.parameter);
     }
@@ -60,19 +60,19 @@ function handleApiRequest(p) {
   var result;
   try {
     switch (p.action) {
-      case 'loginStudent':        result = loginStudent(p.email, p.password);                      break;
-      case 'loginAdmin':          result = loginAdmin(p.email, p.password);                        break;
-      case 'registerStudent':     result = registerStudent(p.email, p.name, p.password);           break;
-      case 'verifyEmail':         result = verifyEmail(p.token);                                     break;
-      case 'resendVerification':  result = resendVerification(p.email);                               break;
-      case 'changePassword':      result = changePassword(p.email, p.oldPassword, p.newPassword);  break;
-      case 'submitRequest':       result = submitRequest(p.studentEmail, p.category, p.details);   break;
-      case 'getMyRequests':       result = getMyRequests(p.studentEmail);                          break;
-      case 'getAllRequests':       result = getAllRequests();                                        break;
-      case 'getStats':            result = getStats();                                              break;
-      case 'updateRequestStatus': result = updateRequestStatus(Number(p.rowIndex), p.newStatus);   break;
-      case 'replyToRequest':      result = replyToRequest(Number(p.rowIndex), p.replyText);        break;
-      case 'deleteRequest':       result = deleteRequest(Number(p.rowIndex));                      break;
+      case 'loginStudent':        result = loginStudent(p.email, p.password);                     break;
+      case 'loginAdmin':          result = loginAdmin(p.email, p.password);                       break;
+      case 'registerStudent':     result = registerStudent(p.email, p.name, p.password);          break;
+      case 'verifyEmail':         result = verifyEmail(p.token);                                  break;
+      case 'resendVerification':  result = resendVerification(p.email);                           break;
+      case 'changePassword':      result = changePassword(p.email, p.oldPassword, p.newPassword); break;
+      case 'submitRequest':       result = submitRequest(p.studentEmail, p.category, p.details);  break;
+      case 'getMyRequests':       result = getMyRequests(p.studentEmail);                         break;
+      case 'getAllRequests':       result = getAllRequests();                                       break;
+      case 'getStats':            result = getStats();                                             break;
+      case 'updateRequestStatus': result = updateRequestStatus(Number(p.rowIndex), p.newStatus);  break;
+      case 'replyToRequest':      result = replyToRequest(Number(p.rowIndex), p.replyText);       break;
+      case 'deleteRequest':       result = deleteRequest(Number(p.rowIndex));                     break;
       default: result = { success: false, message: 'Unknown action: ' + p.action };
     }
   } catch(err) {
@@ -87,7 +87,7 @@ function jsonOut(obj) {
 
 // ══════════════════════════════════════════════════════
 //  SHEET HELPERS
-//  Users: A=email  B=name  C=role  D=password  E=created_at  F=verified
+//  Users: A=email B=name C=role D=password E=created_at F=verified
 // ══════════════════════════════════════════════════════
 function getUsersSheet() {
   var ss    = SpreadsheetApp.openById(SHEET_ID);
@@ -109,35 +109,42 @@ function getRequestsSheet() {
   return sheet;
 }
 
-function getStudentName(email) {
+function getUserInfo(email) {
   try {
     var data = getUsersSheet().getDataRange().getValues();
     for (var i = 1; i < data.length; i++) {
-      if (data[i][0] && data[i][0].toString().toLowerCase() === email.toLowerCase()) return data[i][1];
+      if (data[i][0] && data[i][0].toString().toLowerCase() === email.toLowerCase()) {
+        return { name: data[i][1], role: data[i][2] };
+      }
     }
   } catch(e) {}
-  return email.split('@')[0];
+  return { name: email.split('@')[0], role: 'student' };
 }
 
 // ══════════════════════════════════════════════════════
-//  AUTH
+//  AUTH HELPERS
 // ══════════════════════════════════════════════════════
-function isValidStudentEmail(email) {
-  return email.toLowerCase().endsWith(STUDENT_EMAIL_DOMAIN);
+function isValidEmail(email) {
+  return email.toLowerCase().endsWith(STUDENT_DOMAIN) || email.toLowerCase().endsWith(PROFESSOR_DOMAIN);
 }
 
-// ── REGISTER ──
+function getRoleByEmail(email) {
+  if (email.toLowerCase().endsWith(PROFESSOR_DOMAIN)) return 'professor';
+  return 'student';
+}
+
+// ══════════════════════════════════════════════════════
+//  REGISTER
+// ══════════════════════════════════════════════════════
 function registerStudent(email, name, password) {
   email = email.toLowerCase().trim();
 
-  if (!isValidStudentEmail(email))
-    return { success: false, message: 'Email must end with ' + STUDENT_EMAIL_DOMAIN };
+  if (!isValidEmail(email))
+    return { success: false, message: 'Email must end with ' + STUDENT_DOMAIN + ' or ' + PROFESSOR_DOMAIN };
   if (!name || !password)
     return { success: false, message: 'All fields are required' };
   if (password.length < 6)
     return { success: false, message: 'Password must be at least 6 characters' };
-
-  // Block test email from registering (it already exists as hardcoded)
   if (email === TEST_EMAIL)
     return { success: false, message: 'This email is reserved. Please use a different email.' };
 
@@ -148,9 +155,10 @@ function registerStudent(email, name, password) {
       return { success: false, message: 'Email already registered. Please sign in.' };
   }
 
-  // Generate verification token
+  // Auto assign role based on domain
+  var role  = getRoleByEmail(email);
   var token = Utilities.getUuid();
-  sheet.appendRow([email, name, 'student', password, new Date(), token]);
+  sheet.appendRow([email, name, role, password, new Date(), token]);
 
   // Send verification email
   var verifyUrl = SCRIPT_URL + '?action=verifyEmail&token=' + token;
@@ -169,7 +177,9 @@ function registerStudent(email, name, password) {
   return { success: true };
 }
 
-// ── VERIFY EMAIL ──
+// ══════════════════════════════════════════════════════
+//  VERIFY EMAIL
+// ══════════════════════════════════════════════════════
 function verifyEmail(token) {
   if (!token) return { success: false, message: 'Invalid verification link.' };
   var sheet = getUsersSheet();
@@ -184,10 +194,12 @@ function verifyEmail(token) {
   return { success: false, message: 'Token not found or already used.' };
 }
 
-// ── RESEND VERIFICATION ──
+// ══════════════════════════════════════════════════════
+//  RESEND VERIFICATION
+// ══════════════════════════════════════════════════════
 function resendVerification(email) {
   email = email.toLowerCase().trim();
-  if (!isValidStudentEmail(email)) return { success: false, message: 'Invalid email' };
+  if (!isValidEmail(email)) return { success: false, message: 'Invalid email' };
 
   var sheet = getUsersSheet();
   var data  = sheet.getDataRange().getValues();
@@ -195,13 +207,12 @@ function resendVerification(email) {
     if (data[i][0] && data[i][0].toString().toLowerCase() === email) {
       var verified = data[i][5] ? data[i][5].toString().trim() : '';
       if (verified === 'verified') return { success: false, message: 'Email already verified. Please login.' };
-      // Generate new token
       var token = Utilities.getUuid();
       sheet.getRange(i + 1, 6).setValue(token);
       var verifyUrl = SCRIPT_URL + '?action=verifyEmail&token=' + token;
       GmailApp.sendEmail(
         email,
-        'ยืนยันอีเมลของคุณ (ส่งใหม่) - SRU Hub / Verify your email (resent) - SRU Hub',
+        'ยืนยันอีเมลของคุณ (ส่งใหม่) - SRU Hub',
         'สวัสดี ' + data[i][1] + ' / Hello ' + data[i][1] + ',\n\n' +
         'นี่คืออีเมลยืนยันใหม่ของคุณ / Here is your new verification link:\n\n' +
         verifyUrl + '\n\n' +
@@ -213,12 +224,14 @@ function resendVerification(email) {
   return { success: false, message: 'No account found with this email.' };
 }
 
-// ── LOGIN STUDENT ──
+// ══════════════════════════════════════════════════════
+//  LOGIN STUDENT / PROFESSOR
+// ══════════════════════════════════════════════════════
 function loginStudent(email, password) {
   email = email.toLowerCase().trim();
 
-  if (!isValidStudentEmail(email))
-    return { success: false, message: 'Email must end with ' + STUDENT_EMAIL_DOMAIN };
+  if (!isValidEmail(email))
+    return { success: false, message: 'Email must end with ' + STUDENT_DOMAIN + ' or ' + PROFESSOR_DOMAIN };
 
   // Test account shortcut
   if (email === TEST_EMAIL) {
@@ -229,20 +242,22 @@ function loginStudent(email, password) {
 
   var data = getUsersSheet().getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][0].toString().toLowerCase() === email && data[i][2] === 'student') {
+    if (data[i][0] && data[i][0].toString().toLowerCase() === email) {
       if (data[i][3].toString() !== password.toString())
         return { success: false, message: 'Incorrect password' };
-      // Check verification
       var verified = data[i][5] ? data[i][5].toString().trim() : '';
       if (verified !== 'verified')
-        return { success: false, code: 'NOT_VERIFIED', message: 'Please verify your email first. Check your @student.sru.ac.th inbox.' };
-      return { success: true, user: { email: data[i][0], name: data[i][1], role: 'student' } };
+        return { success: false, message: 'Please verify your email first. Check your inbox.' };
+      var role = data[i][2] ? data[i][2].toString() : getRoleByEmail(email);
+      return { success: true, user: { email: data[i][0], name: data[i][1], role: role } };
     }
   }
   return { success: false, message: 'No account found. Please register first.' };
 }
 
-// ── LOGIN ADMIN ──
+// ══════════════════════════════════════════════════════
+//  LOGIN ADMIN
+// ══════════════════════════════════════════════════════
 function loginAdmin(email, password) {
   email = email.toLowerCase().trim();
   if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD)
@@ -250,12 +265,14 @@ function loginAdmin(email, password) {
   return { success: false, message: 'Invalid admin credentials' };
 }
 
-// ── CHANGE PASSWORD ──
+// ══════════════════════════════════════════════════════
+//  CHANGE PASSWORD
+// ══════════════════════════════════════════════════════
 function changePassword(email, oldPassword, newPassword) {
   email = email.toLowerCase().trim();
-  if (!oldPassword || !newPassword)   return { success: false, message: 'Please fill all fields' };
-  if (newPassword.length < 6)         return { success: false, message: 'New password must be at least 6 characters' };
-  if (oldPassword === newPassword)    return { success: false, message: 'New password must be different' };
+  if (!oldPassword || !newPassword)  return { success: false, message: 'Please fill all fields' };
+  if (newPassword.length < 6)        return { success: false, message: 'New password must be at least 6 characters' };
+  if (oldPassword === newPassword)   return { success: false, message: 'New password must be different' };
 
   if (email === TEST_EMAIL) {
     if (oldPassword !== TEST_PASSWORD) return { success: false, message: 'Current password is incorrect' };
@@ -265,7 +282,7 @@ function changePassword(email, oldPassword, newPassword) {
   var sheet = getUsersSheet();
   var data  = sheet.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][0].toString().toLowerCase() === email && data[i][2] === 'student') {
+    if (data[i][0] && data[i][0].toString().toLowerCase() === email) {
       if (data[i][3].toString() !== oldPassword.toString())
         return { success: false, message: 'Current password is incorrect' };
       sheet.getRange(i + 1, 4).setValue(newPassword);
@@ -289,7 +306,11 @@ function getMyRequests(studentEmail) {
   var out  = [];
   for (var i = 1; i < data.length; i++) {
     if (data[i][1] && data[i][1].toString().toLowerCase() === studentEmail.toLowerCase()) {
-      out.push({ id: data[i][0], category: data[i][2], details: data[i][3], status: data[i][4]||'pending', reply: data[i][5]||'', timestamp: data[i][6] ? new Date(data[i][6]).toLocaleString() : '' });
+      out.push({
+        id: data[i][0], category: data[i][2], details: data[i][3],
+        status: data[i][4]||'pending', reply: data[i][5]||'',
+        timestamp: data[i][6] ? new Date(data[i][6]).toLocaleString() : ''
+      });
     }
   }
   return out.reverse();
@@ -300,8 +321,20 @@ function getAllRequests() {
   var out  = [];
   for (var i = 1; i < data.length; i++) {
     if (data[i][0]) {
-      var email = data[i][1] ? data[i][1].toString() : '';
-      out.push({ rowIndex: i+1, id: data[i][0], studentEmail: email, studentName: getStudentName(email), category: data[i][2]||'', details: data[i][3]||'', status: data[i][4]||'pending', reply: data[i][5]||'', timestamp: data[i][6] ? new Date(data[i][6]).toLocaleString() : '' });
+      var email    = data[i][1] ? data[i][1].toString() : '';
+      var userInfo = getUserInfo(email);
+      out.push({
+        rowIndex:      i + 1,
+        id:            data[i][0],
+        studentEmail:  email,
+        studentName:   userInfo.name,
+        submitterRole: userInfo.role,
+        category:      data[i][2]||'',
+        details:       data[i][3]||'',
+        status:        data[i][4]||'pending',
+        reply:         data[i][5]||'',
+        timestamp:     data[i][6] ? new Date(data[i][6]).toLocaleString() : ''
+      });
     }
   }
   return out.reverse();
